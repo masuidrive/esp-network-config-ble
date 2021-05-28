@@ -11,14 +11,9 @@ idf_component_register(
     "src"
   SRCS
     "src/main.c"
-    "src/tokenizer.c"
-    "src/ble_parser.c"
-    "src/command_SSIDLIST.c"
-    "src/command_SETWIFI.c"
   REQUIRES
     bt
-    esp-nimble-nordic-uart
   PRIV_REQUIRES
     ${ESP_NIMBLE_PRIV_REQUIRES}
 )
-project(esp-smartconfig-ble)
+project(esp-nimble-nordic-uart)
