@@ -12,16 +12,20 @@
 #include "nvs_flash.h"
 #include "tokenizer.h"
 
-void command_SSIDLIST(const char *args[], const char *data);
+#define MAX_COMMAND_ARGC 8
+
+void command_SSIDLIST(int argc, const char *args[], const char *data);
+void command_SETWIFI(int argc, const char *args[], const char *data);
 
 struct BLECommand {
   const char *name;
   bool multiline;
-  void (*func)(const char *args[], const char *data);
+  void (*func)(int argc, const char *args[], const char *data);
 };
 
 const struct BLECommand commands[] = {
     {.name = "SSIDLIST", .multiline = false, .func = command_SSIDLIST},
+    {.name = "SETWIFI", .multiline = false, .func = command_SETWIFI},
 };
 
 static void initialisze_wifi(void) {
@@ -50,7 +54,12 @@ static void uartIncomingTask(void *parameter) {
 
       for (int i = 0; i < sizeof(commands) / sizeof(struct BLECommand); ++i) {
         if (strcasecmp(command_name, commands[i].name) == 0) {
-          commands[i].func(NULL, NULL);
+          char *args[MAX_COMMAND_ARGC];
+          int argc = 0;
+          while (item && argc < MAX_COMMAND_ARGC) {
+            item = get_token(item, &args[argc++]);
+          }
+          commands[i].func(argc, (const char **)args, NULL);
           break;
         }
       }
@@ -63,6 +72,8 @@ static void uartIncomingTask(void *parameter) {
 }
 
 void smart_config_ble_start(void) {
+  ESP_ERROR_CHECK(esp_event_loop_create_default());
+
   initialisze_wifi();
   nordic_uart_start();
   xTaskCreate(uartIncomingTask, "uartIncomingTask", 8192, NULL, 1, NULL);
