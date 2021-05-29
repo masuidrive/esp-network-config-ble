@@ -18,7 +18,6 @@
 void command_SSIDLIST(int argc, const char *args[], int datac, const char *data[]) {
   const wifi_scan_config_t scanConf = {
       .ssid = NULL, .bssid = NULL, .channel = 0, .show_hidden = true, .scan_type = WIFI_SCAN_TYPE_ACTIVE};
-
   ESP_ERROR_CHECK(esp_wifi_scan_start(&scanConf, true));
 
   uint16_t ap_count = 0;
@@ -46,5 +45,6 @@ void command_SSIDLIST(int argc, const char *args[], int datac, const char *data[
       nordic_uart_sendln((const char *)ap_record_list[i].ssid);
     }
   }
+
   nordic_uart_sendln("");
 }
