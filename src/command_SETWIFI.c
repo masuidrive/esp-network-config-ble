@@ -26,7 +26,6 @@ static esp_event_handler_instance_t instance_got_ip;
 
 static void wifi_event_handler(void *arg, esp_event_base_t event_base, int32_t event_id, void *event_data) {
   static int s_retry_num = 0;
-  printf("wifi_event_handler=%s / %d\n", event_base, event_id);
   if (event_base == WIFI_EVENT) {
     if (event_id == WIFI_EVENT_STA_START) {
       esp_wifi_connect();
@@ -48,7 +47,7 @@ static void wifi_event_handler(void *arg, esp_event_base_t event_base, int32_t e
   }
 }
 
-void command_SETWIFI(int argc, const char *args[], const char *data) {
+void command_SETWIFI(int argc, const char *args[], int datac, const char *data[]) {
   if (argc < 1) {
     nordic_uart_sendln("ERROR \"SSID is blank\"");
     nordic_uart_sendln("");

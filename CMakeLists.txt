@@ -15,6 +15,7 @@ idf_component_register(
     "src/ble_parser.c"
     "src/command_SSIDLIST.c"
     "src/command_SETWIFI.c"
+    "src/command_DEBUG.c"
   REQUIRES
     bt
     esp-nimble-nordic-uart

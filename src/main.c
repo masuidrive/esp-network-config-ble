@@ -4,6 +4,7 @@
 
 #include "esp-nimble-nordic-uart.h"
 #include "esp-smartconfig-ble.h"
+#include "esp32/himem.h"
 #include "esp_log.h"
 #include "esp_netif.h"
 #include "esp_wifi.h"
@@ -13,19 +14,22 @@
 #include "tokenizer.h"
 
 #define MAX_COMMAND_ARGC 8
+#define MAX_DATA_LINES 64
 
-void command_SSIDLIST(int argc, const char *args[], const char *data);
-void command_SETWIFI(int argc, const char *args[], const char *data);
+void command_SSIDLIST(int argc, const char *args[], int datac, const char *data[]);
+void command_SETWIFI(int argc, const char *args[], int datac, const char *data[]);
+void command_DEBUG(int argc, const char *args[], int datac, const char *data[]);
 
 struct BLECommand {
   const char *name;
   bool multiline;
-  void (*func)(int argc, const char *args[], const char *data);
+  void (*func)(int argc, const char *args[], int datac, const char *data[]);
 };
 
 const struct BLECommand commands[] = {
     {.name = "SSIDLIST", .multiline = false, .func = command_SSIDLIST},
     {.name = "SETWIFI", .multiline = false, .func = command_SETWIFI},
+    {.name = "DEBUG", .multiline = true, .func = command_DEBUG},
 };
 
 static void initialisze_wifi(void) {
@@ -59,7 +63,21 @@ static void uartIncomingTask(void *parameter) {
           while (item && argc < MAX_COMMAND_ARGC) {
             item = get_token(item, &args[argc++]);
           }
-          commands[i].func(argc, (const char **)args, NULL);
+          int datac = 0;
+          char *data[CONFIG_NORDIC_UART_MAX_LINE_LENGTH];
+          while (true) {
+            size_t dataline_size;
+            char *dataline = (char *)xRingbufferReceive(nordic_uart_rx_buf_handle, &dataline_size, portMAX_DELAY);
+            size_t dataline_len = strlen(dataline);
+            if (dataline_len == 0)
+              break;
+            data[datac] = malloc(dataline_len + 1);
+            strcpy(data[datac++], dataline);
+          };
+
+          commands[i].func(argc, (const char **)args, datac, (const char **)data);
+          for (int j = 0; j < datac; ++j)
+            free(data[j]);
           break;
         }
       }
