@@ -12,7 +12,7 @@ idf_component_register(
   SRCS
     "src/main.c"
     "src/tokenizer.c"
-    "src/ble_parser.c"
+    "src/connect_wifi.c"
     "src/command_SSIDLIST.c"
     "src/command_SETWIFI.c"
     "src/command_DEBUG.c"

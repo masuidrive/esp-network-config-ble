@@ -16,7 +16,6 @@ static const char *TAG = "SET";
 #define VALUE_SIZE 4000
 
 void command_SET_STR(int argc, const char *args[], int datac, const char *data[]) {
-  char *value = malloc(VALUE_SIZE);
   if (argc == 2) {
     nvs_handle_t nvs_handle;
     ESP_ERROR_CHECK(nvs_open("bleconfig", NVS_READWRITE, &nvs_handle));
