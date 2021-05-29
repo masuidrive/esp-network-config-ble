@@ -11,14 +11,14 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/event_groups.h"
 #include "freertos/task.h"
-#include "nvs_flash.h"
 
 static const char *TAG = "SETWIFI";
 
 #define WIFI_CONNECTED_BIT BIT0
 #define WIFI_FAILED_BIT BIT1
 #define RETRY_COUNT 3
-#define MAX(a, b) ((a) > (b) ? (a) : (b))
+#define SSID_LENGTH 32
+#define PASSWORD_LENGTH 64
 
 static EventGroupHandle_t s_wifi_event_group;
 static esp_event_handler_instance_t instance_any_id;
@@ -47,7 +47,7 @@ static void wifi_event_handler(void *arg, esp_event_base_t event_base, int32_t e
   }
 }
 
-void command_SETWIFI(int argc, const char *args[], int datac, const char *data[]) {
+void command_CHECK_AWS(int argc, const char *args[], int datac, const char *data[]) {
   if (argc < 1) {
     nordic_uart_sendln("ERROR \"SSID is blank\"");
     nordic_uart_sendln("");
@@ -76,36 +76,22 @@ void command_SETWIFI(int argc, const char *args[], int datac, const char *data[]
 
   strlcpy((char *)wifi_config.sta.ssid, args[0], sizeof(wifi_config.sta.ssid));
   strlcpy((char *)wifi_config.sta.password, args[1], sizeof(wifi_config.sta.password));
-  puts((char *)wifi_config.sta.ssid);
+  puts((char *)wifi_config.sta.password);
   ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA));
   ESP_ERROR_CHECK(esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_config));
   ESP_ERROR_CHECK(esp_wifi_start());
 
   EventBits_t bits =
       xEventGroupWaitBits(s_wifi_event_group, WIFI_CONNECTED_BIT | WIFI_FAILED_BIT, pdFALSE, pdFALSE, portMAX_DELAY);
+
   ESP_ERROR_CHECK(esp_event_handler_instance_unregister(WIFI_EVENT, ESP_EVENT_ANY_ID, instance_any_id));
   ESP_ERROR_CHECK(esp_event_handler_instance_unregister(IP_EVENT, IP_EVENT_STA_GOT_IP, instance_got_ip));
-  ESP_ERROR_CHECK(esp_wifi_stop());
 
   vEventGroupDelete(s_wifi_event_group);
   s_wifi_event_group = NULL;
 
   if (bits & WIFI_CONNECTED_BIT) {
     ESP_LOGI(TAG, "connected to ap SSID:%s password:%s", wifi_config.sta.ssid, wifi_config.sta.password);
-
-    nvs_handle_t nvs_handle;
-    ESP_ERROR_CHECK(nvs_open("wifi", NVS_READWRITE, &nvs_handle));
-    char buf[MAX(sizeof(wifi_config.sta.ssid), sizeof(wifi_config.sta.password)) + 1];
-
-    strlcpy(buf, (const char *)wifi_config.sta.ssid, sizeof(wifi_config.sta.ssid));
-    buf[sizeof(wifi_config.sta.ssid)] = '\0';
-    ESP_ERROR_CHECK(nvs_set_str(nvs_handle, "ssid", buf));
-
-    strlcpy(buf, (const char *)wifi_config.sta.password, sizeof(wifi_config.sta.password));
-    buf[sizeof(wifi_config.sta.password)] = '\0';
-    ESP_ERROR_CHECK(nvs_set_str(nvs_handle, "password", buf));
-
-    nvs_close(nvs_handle);
     nordic_uart_sendln("OK");
   } else if (bits & WIFI_FAILED_BIT) {
     ESP_LOGI(TAG, "Failed to connect to SSID:%s, password:%s", wifi_config.sta.ssid, wifi_config.sta.password);

@@ -19,6 +19,11 @@
 void command_SSIDLIST(int argc, const char *args[], int datac, const char *data[]);
 void command_SETWIFI(int argc, const char *args[], int datac, const char *data[]);
 void command_DEBUG(int argc, const char *args[], int datac, const char *data[]);
+void command_SET_STR(int argc, const char *args[], int datac, const char *data[]);
+void command_SET_MULTI(int argc, const char *args[], int datac, const char *data[]);
+void command_GET_STR(int argc, const char *args[], int datac, const char *data[]);
+void command_CHECK_AWS(int argc, const char *args[], int datac, const char *data[]);
+void command_CHECK_WIFI(int argc, const char *args[], int datac, const char *data[]);
 
 struct BLECommand {
   const char *name;
@@ -29,6 +34,10 @@ struct BLECommand {
 const struct BLECommand commands[] = {
     {.name = "SSIDLIST", .multiline = false, .func = command_SSIDLIST},
     {.name = "SETWIFI", .multiline = false, .func = command_SETWIFI},
+    {.name = "GET_STR", .multiline = false, .func = command_GET_STR},
+    {.name = "SET_STR", .multiline = false, .func = command_SET_STR},
+    {.name = "SET_MULTI", .multiline = true, .func = command_SET_MULTI},
+    {.name = "CHECK_WIFI", .multiline = false, .func = command_CHECK_WIFI},
     {.name = "DEBUG", .multiline = true, .func = command_DEBUG},
 };
 

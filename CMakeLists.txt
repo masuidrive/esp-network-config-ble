@@ -16,6 +16,10 @@ idf_component_register(
     "src/command_SSIDLIST.c"
     "src/command_SETWIFI.c"
     "src/command_DEBUG.c"
+    "src/command_GET.c"
+    "src/command_SET.c"
+    "src/command_CHECK_AWS.c"
+    "src/command_CHECK_WIFI.c"
   REQUIRES
     bt
     esp-nimble-nordic-uart
