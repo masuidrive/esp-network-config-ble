@@ -13,8 +13,9 @@ idf_component_register(
     "src/main.c"
     "src/tokenizer.c"
     "src/connect_wifi.c"
-    "src/command_SSIDLIST.c"
-    "src/command_SETWIFI.c"
+    "src/connect_aws.c"
+    "src/command_LIST_SSID.c"
+    "src/command_SET_WIFI.c"
     "src/command_DEBUG.c"
     "src/command_GET.c"
     "src/command_SET.c"
@@ -23,6 +24,7 @@ idf_component_register(
   REQUIRES
     bt
     esp-nimble-nordic-uart
+    esp-aws-iot
   PRIV_REQUIRES
     ${ESP_NIMBLE_PRIV_REQUIRES}
 )

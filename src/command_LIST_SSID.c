@@ -15,7 +15,7 @@
 #define MAX_SSID_COUNT 64
 #define SSID_STR_LENGTH 32
 
-void command_SSIDLIST(int argc, const char *args[], int datac, const char *data[]) {
+void command_LIST_SSID(int argc, const char *args[], int datac, const char *data[]) {
   const wifi_scan_config_t scanConf = {
       .ssid = NULL, .bssid = NULL, .channel = 0, .show_hidden = true, .scan_type = WIFI_SCAN_TYPE_ACTIVE};
   ESP_ERROR_CHECK(esp_wifi_scan_start(&scanConf, true));

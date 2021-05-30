@@ -36,9 +36,11 @@ void command_SET_MULTI(int argc, const char *args[], int datac, const char *data
   char *value = malloc(VALUE_SIZE);
   value[0] = '\0';
   for (int i = 0; i < datac; i++) {
-    strlcat(value, args[i], VALUE_SIZE);
+    strlcat(value, data[i], VALUE_SIZE);
     strlcat(value, "\n", VALUE_SIZE);
   }
+  printf("SET %s, %d lines\n", args[0], datac);
+  puts(value);
 
   nvs_handle_t nvs_handle;
   ESP_ERROR_CHECK(nvs_open("bleconfig", NVS_READWRITE, &nvs_handle));

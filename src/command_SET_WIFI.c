@@ -17,7 +17,7 @@
 
 static const char *TAG = "SETWIFI";
 
-void command_SETWIFI(int argc, const char *args[], int datac, const char *data[]) {
+void command_SET_WIFI(int argc, const char *args[], int datac, const char *data[]) {
   if (argc < 1) {
     nordic_uart_sendln("ERROR \"SSID is blank\"");
     nordic_uart_sendln("");

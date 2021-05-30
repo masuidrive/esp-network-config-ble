@@ -17,6 +17,7 @@ static const char *TAG = "DEBUG";
 void command_DEBUG(int argc, const char *args[], int datac, const char *data[]) {
   char buf[CONFIG_NORDIC_UART_MAX_LINE_LENGTH];
   sprintf(buf, "argc=%d, datac=%d", argc, datac);
+  puts(buf);
   nordic_uart_sendln(buf);
 
   for (int i = 0; i < argc; ++i) {

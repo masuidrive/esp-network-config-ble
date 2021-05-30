@@ -1,3 +1,4 @@
+#include "connect_aws.h"
 #include "connect_wifi.h"
 #include "esp-nimble-nordic-uart.h"
 #include "esp-smartconfig-ble.h"
@@ -8,12 +9,15 @@
 static const char *TAG = "CHECK AWS";
 
 void command_CHECK_AWS(int argc, const char *args[], int datac, const char *data[]) {
-  if (connect_wifi_with_nvs() == ESP_OK) {
-    nordic_uart_sendln("OK");
-    ESP_LOGI(TAG, "Successed to connect");
-  } else {
+  if (connect_wifi_with_nvs() != ESP_OK) {
     nordic_uart_sendln("ERROR: Failed to connect");
+    nordic_uart_sendln("");
     ESP_LOGI(TAG, "Failed to connect");
+    return;
   }
+  ESP_LOGI(TAG, "Successed to connect");
+  connect_aws_with_nvs();
+
+  nordic_uart_sendln("OK");
   nordic_uart_sendln("");
 }

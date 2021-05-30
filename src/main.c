@@ -16,14 +16,15 @@
 #define MAX_COMMAND_ARGC 8
 #define MAX_DATA_LINES 64
 
-void command_SSIDLIST(int argc, const char *args[], int datac, const char *data[]);
-void command_SETWIFI(int argc, const char *args[], int datac, const char *data[]);
+void command_LIST_SSID(int argc, const char *args[], int datac, const char *data[]);
+void command_SET_WIFI(int argc, const char *args[], int datac, const char *data[]);
 void command_DEBUG(int argc, const char *args[], int datac, const char *data[]);
 void command_SET_STR(int argc, const char *args[], int datac, const char *data[]);
 void command_SET_MULTI(int argc, const char *args[], int datac, const char *data[]);
 void command_GET_STR(int argc, const char *args[], int datac, const char *data[]);
 void command_CHECK_AWS(int argc, const char *args[], int datac, const char *data[]);
 void command_CHECK_WIFI(int argc, const char *args[], int datac, const char *data[]);
+void command_CHECK_AWS(int argc, const char *args[], int datac, const char *data[]);
 
 struct BLECommand {
   const char *name;
@@ -32,12 +33,13 @@ struct BLECommand {
 };
 
 const struct BLECommand commands[] = {
-    {.name = "SSIDLIST", .multiline = false, .func = command_SSIDLIST},
-    {.name = "SETWIFI", .multiline = false, .func = command_SETWIFI},
+    {.name = "LIST_SSID", .multiline = false, .func = command_LIST_SSID},
+    {.name = "SET_WIFI", .multiline = false, .func = command_SET_WIFI},
     {.name = "GET_STR", .multiline = false, .func = command_GET_STR},
     {.name = "SET_STR", .multiline = false, .func = command_SET_STR},
     {.name = "SET_MULTI", .multiline = true, .func = command_SET_MULTI},
     {.name = "CHECK_WIFI", .multiline = false, .func = command_CHECK_WIFI},
+    {.name = "CHECK_AWS", .multiline = false, .func = command_CHECK_AWS},
     {.name = "DEBUG", .multiline = true, .func = command_DEBUG},
 };
 
@@ -67,10 +69,15 @@ static void uartIncomingTask(void *parameter) {
 
       for (int i = 0; i < sizeof(commands) / sizeof(struct BLECommand); ++i) {
         if (strcasecmp(command_name, commands[i].name) == 0) {
+          printf("Start command: %s\n", command_name);
           char *args[MAX_COMMAND_ARGC];
           int argc = 0;
           while (item && argc < MAX_COMMAND_ARGC) {
-            item = get_token(item, &args[argc++]);
+            puts(item);
+            item = get_token(item, &args[argc]);
+            if (args[argc] == NULL)
+              break;
+            ++argc;
           }
 
           if (commands[i].multiline) {

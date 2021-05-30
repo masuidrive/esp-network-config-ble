@@ -28,6 +28,7 @@ void command_GET_STR(int argc, const char *args[], int datac, const char *data[]
   ESP_ERROR_CHECK(nvs_get_str(nvs_handle, args[0], NULL, &required_size));
   char *value = malloc(required_size);
   ESP_ERROR_CHECK(nvs_get_str(nvs_handle, args[0], value, &required_size));
+  puts(value);
   nvs_close(nvs_handle);
   nordic_uart_sendln(value);
 
