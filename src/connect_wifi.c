@@ -100,10 +100,10 @@ esp_err_t connect_wifi_with_nvs() {
   nvs_handle_t nvs_handle;
   ESP_ERROR_CHECK(nvs_open("wifi", NVS_READONLY, &nvs_handle));
 
-  size_t required_size;
+  size_t ssid_size = MAX_SSID_LEN, passphrase_size = MAX_PASSPHRASE_LEN;
   char ssid[MAX_SSID_LEN], password[MAX_PASSPHRASE_LEN];
-  ESP_ERROR_CHECK(nvs_get_str(nvs_handle, "ssid", ssid, &required_size));
-  ESP_ERROR_CHECK(nvs_get_str(nvs_handle, "password", password, &required_size));
+  ESP_ERROR_CHECK(nvs_get_str(nvs_handle, "ssid", ssid, &ssid_size));
+  ESP_ERROR_CHECK(nvs_get_str(nvs_handle, "password", password, &passphrase_size));
   nvs_close(nvs_handle);
 
   return connect_wifi(ssid, password);
