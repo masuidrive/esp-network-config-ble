@@ -16,6 +16,8 @@
 #include "aws_iot_mqtt_client_interface.h"
 #include "aws_iot_version.h"
 
+#define RETRY_COUNT 5
+
 static const char *TAG = "CONNECT AWS";
 
 void iot_subscribe_callback_handler(AWS_IoT_Client *pClient, char *topicName, uint16_t topicNameLen,
@@ -106,13 +108,20 @@ esp_err_t connect_aws_with_nvs() {
   connectParams.isWillMsgPresent = false;
 
   ESP_LOGI(TAG, "Connecting to AWS...");
+
+  int retry_count = 0;
   do {
     rc = aws_iot_mqtt_connect(&client, &connectParams);
     if (SUCCESS != rc) {
       ESP_LOGE(TAG, "Error(%d) connecting to %s:%d", rc, mqttInitParams.pHostURL, mqttInitParams.port);
       vTaskDelay(1000 / portTICK_RATE_MS);
     }
-  } while (SUCCESS != rc);
+  } while (SUCCESS != rc && retry_count++ < RETRY_COUNT);
+  rc = aws_iot_mqtt_autoreconnect_set_status(&client, true);
+  if (SUCCESS != rc) {
+    ESP_LOGE(TAG, "Unable to ceconnect - %d", rc);
+    return ESP_FAIL;
+  }
 
   /*
    * Enable Auto Reconnect functionality. Minimum and Maximum time of Exponential backoff are set in aws_iot_config.h
@@ -122,7 +131,7 @@ esp_err_t connect_aws_with_nvs() {
   rc = aws_iot_mqtt_autoreconnect_set_status(&client, true);
   if (SUCCESS != rc) {
     ESP_LOGE(TAG, "Unable to set Auto Reconnect to true - %d", rc);
-    abort();
+    return ESP_FAIL;
   }
 
   // const char *TOPIC = "test_topic/esp32";
@@ -134,7 +143,13 @@ esp_err_t connect_aws_with_nvs() {
   rc = aws_iot_mqtt_subscribe(&client, TOPIC, TOPIC_LEN, QOS0, iot_subscribe_callback_handler, NULL);
   if (SUCCESS != rc) {
     ESP_LOGE(TAG, "Error subscribing : %d ", rc);
-    abort();
+    return ESP_FAIL;
+  }
+
+  rc = aws_iot_mqtt_yield(&client, 100);
+  if (SUCCESS != rc) {
+    ESP_LOGE(TAG, "Error subscribing : %d ", rc);
+    return ESP_FAIL;
   }
 
   ESP_LOGI(TAG, "loop...");
