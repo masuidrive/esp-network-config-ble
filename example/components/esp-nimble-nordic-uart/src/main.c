@@ -36,10 +36,10 @@ void ble_app_advertise(void);
 #define CHARACTERISTIC_UUID_TX                                                                                         \
   0x9e, 0xca, 0xdc, 0x24, 0x0e, 0xe5, 0xa9, 0xe0, 0x93, 0xf3, 0xa3, 0xb5, 0x03, 0x00, 0x40, 0x6e
 
-static uint16_t conn_hdl;
+static uint16_t ble_conn_hdl;
 static uint16_t notify_char_attr_hdl;
 
-RingbufHandle_t nordic_uart_rx_buf_handle;
+static RingbufHandle_t nordic_uart_rx_buf_handle;
 static char *rx_line_buffer = NULL;
 static size_t rx_line_buffer_pos = 0;
 
@@ -66,7 +66,6 @@ static int uart_receive(uint16_t conn_handle, uint16_t attr_handle, struct ble_g
       break;
     }
   }
-
   return 0;
 }
 
@@ -96,8 +95,7 @@ static int ble_gap_event(struct ble_gap_event *event, void *arg) {
   switch (event->type) {
   case BLE_GAP_EVENT_CONNECT:
     ESP_LOGI(TAG, "BLE_GAP_EVENT_CONNECT %s", event->connect.status == 0 ? "OK" : "Failed");
-    conn_hdl = event->connect.conn_handle;
-
+    ble_conn_hdl = event->connect.conn_handle;
     if (event->connect.status != 0) {
       ble_app_advertise();
     }
@@ -132,7 +130,6 @@ void ble_app_advertise(void) {
   fields.name_is_complete = 1;
 
   ble_gap_adv_set_fields(&fields);
-
   struct ble_gap_adv_params adv_params;
   memset(&adv_params, 0, sizeof(adv_params));
   adv_params.conn_mode = BLE_GAP_CONN_MODE_UND;
@@ -150,13 +147,13 @@ void host_task(void *param) { nimble_port_run(); }
 
 esp_err_t nordic_uart_send(const char *message) {
   const int len = strlen(message);
+  // Split the message in BLE_MTU and send it.
   for (int i = 0; i < len; i += BLE_MTU) {
     struct os_mbuf *om = ble_hs_mbuf_from_flat(&message[i], MIN(BLE_MTU, len - i));
-    int err = ble_gattc_notify_custom(conn_hdl, notify_char_attr_hdl, om);
+    int err = ble_gattc_notify_custom(ble_conn_hdl, notify_char_attr_hdl, om);
     if (err)
       return ESP_FAIL;
   }
-
   return ESP_OK;
 }
 
@@ -174,6 +171,7 @@ esp_err_t nordic_uart_sendln(const char *message) {
 esp_err_t nordic_uart_start(void) {
   nvs_flash_init();
 
+  // Receive BLE and split it with /\r*\n/
   rx_line_buffer = malloc(CONFIG_NORDIC_UART_MAX_LINE_LENGTH + 1);
   rx_line_buffer_pos = 0;
 
