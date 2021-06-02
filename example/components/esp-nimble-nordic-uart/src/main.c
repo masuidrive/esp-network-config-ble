@@ -39,7 +39,7 @@ void ble_app_advertise(void);
 static uint16_t ble_conn_hdl;
 static uint16_t notify_char_attr_hdl;
 
-static RingbufHandle_t nordic_uart_rx_buf_handle;
+RingbufHandle_t nordic_uart_rx_buf_handle;
 static char *rx_line_buffer = NULL;
 static size_t rx_line_buffer_pos = 0;
 
@@ -158,9 +158,11 @@ esp_err_t nordic_uart_send(const char *message) {
 }
 
 esp_err_t nordic_uart_sendln(const char *message) {
-  int err1 = nordic_uart_send(message);
-  if (err1)
-    return ESP_FAIL;
+  if (strlen(message) > 0) {
+    int err1 = nordic_uart_send(message);
+    if (err1)
+      return ESP_FAIL;
+  }
   int err2 = nordic_uart_send("\r\n");
   if (err2)
     return ESP_FAIL;

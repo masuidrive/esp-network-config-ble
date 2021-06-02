@@ -45,6 +45,5 @@ void command_LIST_SSID(int argc, const char *args[], int datac, const char *data
       nordic_uart_sendln((const char *)ap_record_list[i].ssid);
     }
   }
-
   nordic_uart_sendln("");
 }

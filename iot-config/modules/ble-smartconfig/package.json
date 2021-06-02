@@ -1,0 +1,21 @@
+{
+  "name": "ble-smartconfig",
+  "version": "1.0.0",
+  "description": "",
+  "dependencies": {
+    "typescript": "^4.1.2"
+  },
+  "devDependencies": {
+    "@types/web-bluetooth": "^0.0.9"
+  },
+  "files": [
+    "dist"
+  ],
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Yuichiro MASUI <masui@masuidrive.jp>",
+  "license": "Apache-2.0"
+}
