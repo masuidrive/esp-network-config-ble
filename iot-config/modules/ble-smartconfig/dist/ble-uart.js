@@ -169,6 +169,7 @@ var BLEUART = /** @class */ (function (_super) {
                         value = event.target.value;
                         text = new TextDecoder().decode(value);
                         this.rx_buffer += text;
+                        console.log("[[" + text + "]]");
                         splited = this.rx_buffer.split(/\r*\n/g);
                         for (i = 0; i < splited.length - 1; ++i) {
                             line = splited.shift();

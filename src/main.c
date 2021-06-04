@@ -116,5 +116,5 @@ void smart_config_ble_start(void) {
 
   initialisze_wifi();
   nordic_uart_start();
-  xTaskCreate(uartIncomingTask, "uartIncomingTask", 8192, NULL, 1, NULL);
+  xTaskCreate(uartIncomingTask, "uartIncomingTask", 8192 * 2, NULL, 1, NULL);
 }

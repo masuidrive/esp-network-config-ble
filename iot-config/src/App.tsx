@@ -1,7 +1,11 @@
-import React from 'react';
+import React, { useState } from "react";
 import { makeStyles } from '@material-ui/core/styles';
 import './App.css';
 import { BLESmartConfig, BLEUART } from 'ble-smartconfig';
+import { Wizard, Steps, Step } from 'react-albus';
+import { ConnectDevice } from "./ConnectDevice"
+import { SelectSSID } from "./SelectSSID"
+
 
 import Container from '@material-ui/core/Container';
 import Avatar from '@material-ui/core/Avatar';
@@ -37,78 +41,50 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-async function click() {
-  let uart = new BLEUART("Nordic");
-  await uart.start();
-  let bsc = new BLESmartConfig(uart);
-  console.log("ssid list:", await bsc.ssids());
-}
-
 function App() {
   const classes = useStyles();
+  const [uart, setUart] = useState<BLEUART | undefined>(undefined);
+  const [smartConfig, setSmartConfig] = useState<BLESmartConfig | undefined>(undefined);
 
   return (
     <Container component="main" maxWidth="xs">
       <CssBaseline />
-      <div className={classes.paper}>
-        <Avatar className={classes.avatar}>
-          <LockOutlinedIcon />
-        </Avatar>
-        <Typography component="h1" variant="h5">
-          Sign in
-        </Typography>
-          <TextField
-            variant="outlined"
-            margin="normal"
-            required
-            fullWidth
-            id="email"
-            label="Email Address"
-            name="email"
-            autoComplete="email"
-            autoFocus
+      <Wizard>
+        <Steps>
+          <Step
+            id="merlin"
+            render={({ next }) => (
+              <div>
+                <ConnectDevice onConnect={(uart: BLEUART) => {
+                  setUart(uart);
+                  setSmartConfig(new BLESmartConfig(uart));
+                  next();
+                }}/>
+              </div>
+            )}
           />
-          <TextField
-            variant="outlined"
-            margin="normal"
-            required
-            fullWidth
-            name="password"
-            label="Password"
-            type="password"
-            id="password"
-            autoComplete="current-password"
+          <Step
+            id="gandalf"
+            render={({ next, previous }) => (
+              <div>
+                <SelectSSID smartConfig={smartConfig} onSelect={()=>{
+                  next();
+                }}/>
+                <button onClick={previous}>Previous</button>
+              </div>
+            )}
           />
-          <FormControlLabel
-            control={<Checkbox value="remember" color="primary" />}
-            label="Remember me"
+          <Step
+            id="dumbledore"
+            render={({ previous }) => (
+              <div>
+                <h1>Dumbledore</h1>
+                <button onClick={previous}>Previous</button>
+              </div>
+            )}
           />
-          <Button
-            type="submit"
-            fullWidth
-            variant="contained"
-            color="primary"
-            className={classes.submit}
-            onClick={click}
-          >
-            Sign In
-          </Button>
-          <Grid container>
-            <Grid item xs>
-              <Link href="#" variant="body2">
-                Forgot password?
-              </Link>
-            </Grid>
-            <Grid item>
-              <Link href="#" variant="body2">
-                {"Don't have an account? Sign Up"}
-              </Link>
-            </Grid>
-          </Grid>
-      </div>
-      <Box mt={8}>
-        hello
-      </Box>
+        </Steps>
+      </Wizard>
     </Container>
   );
 }

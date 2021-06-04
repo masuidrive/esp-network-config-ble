@@ -36,14 +36,27 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.BLESmartConfig = exports.BLEUART = void 0;
+exports.BLESmartConfig = exports.SSIDItem = exports.BLEUART = void 0;
 var ble_uart_1 = require("./ble-uart");
 Object.defineProperty(exports, "BLEUART", { enumerable: true, get: function () { return ble_uart_1.BLEUART; } });
+var SSIDItem = /** @class */ (function () {
+    function SSIDItem(line) {
+        var item = line.split(/,/, 3);
+        this.authmode = parseInt(item[0], 10);
+        this.rssi = parseInt(item[1], 10);
+        this.ssid = item[2];
+    }
+    SSIDItem.prototype.isOpen = function () {
+        return this.authmode === 0;
+    };
+    return SSIDItem;
+}());
+exports.SSIDItem = SSIDItem;
 var BLESmartConfig = /** @class */ (function () {
     function BLESmartConfig(uart) {
         this.uart = uart;
     }
-    BLESmartConfig.prototype.ssids = function () {
+    BLESmartConfig.prototype.list_ssid = function () {
         return __awaiter(this, void 0, void 0, function () {
             var result, line;
             return __generator(this, function (_a) {
@@ -59,11 +72,14 @@ var BLESmartConfig = /** @class */ (function () {
                         return [4 /*yield*/, this.uart.readline()];
                     case 3:
                         line = _a.sent();
+                        console.log("[" + line + "]");
                         if (line === "")
                             return [3 /*break*/, 4];
-                        result.push(line);
+                        result.push(new SSIDItem(line));
                         return [3 /*break*/, 2];
-                    case 4: return [2 /*return*/, result];
+                    case 4:
+                        console.log(result);
+                        return [2 /*return*/, result];
                 }
             });
         });
