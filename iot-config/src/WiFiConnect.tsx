@@ -46,7 +46,6 @@ export function WiFiConnect(props: Props) {
         }
 
         const connected = await props.smartConfig!.test_wifi_connection();
-        console.log("connected: ", connected);
         if(connected) {
           setStatus(Status.connected);
         }
