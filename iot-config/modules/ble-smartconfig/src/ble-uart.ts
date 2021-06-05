@@ -76,6 +76,18 @@ export class BLEUART extends EventEmitter {
     });
   }
 
+  waitBlankResolve?: () => void = undefined;
+  waitBlank(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      this.waitBlankResolve = resolve;
+    });
+  }
+
+  clear() {
+    this.readlineBuffer = [];
+    this.rx_buffer = "";
+  }
+
   rx_buffer: string = "";
   async handleNotifications(event: Event) {
     if (this.txChar) {
@@ -83,7 +95,7 @@ export class BLEUART extends EventEmitter {
         const value = (event!.target! as any).value;
         const text = new TextDecoder().decode(value);
         this.rx_buffer += text;
-        console.log(`[[${text}]]`);
+        console.log(`receive[${text}]`);
 
         let splited = this.rx_buffer.split(/\r*\n/g);
         for (let i = 0; i < splited.length - 1; ++i) {
@@ -95,6 +107,11 @@ export class BLEUART extends EventEmitter {
             } else {
               this.readlineBuffer?.push(line);
             }
+            if (this.waitBlankResolve && line === "") {
+              this.clear();
+              this.waitBlankResolve();
+            }
+
             this.emit("receive", line);
           }
         }

@@ -63,6 +63,7 @@ var BLEUART = /** @class */ (function (_super) {
         var _this = _super.call(this) || this;
         _this.readlineBuffer = [];
         _this.readlineResolve = undefined;
+        _this.waitBlankResolve = undefined;
         _this.rx_buffer = "";
         _this.namePrefix = namePrefix;
         _this.serviceUUID = serviceUUID;
@@ -159,6 +160,16 @@ var BLEUART = /** @class */ (function (_super) {
             }
         });
     };
+    BLEUART.prototype.waitBlank = function () {
+        var _this = this;
+        return new Promise(function (resolve, reject) {
+            _this.waitBlankResolve = resolve;
+        });
+    };
+    BLEUART.prototype.clear = function () {
+        this.readlineBuffer = [];
+        this.rx_buffer = "";
+    };
     BLEUART.prototype.handleNotifications = function (event) {
         var _a, _b;
         return __awaiter(this, void 0, void 0, function () {
@@ -169,7 +180,7 @@ var BLEUART = /** @class */ (function (_super) {
                         value = event.target.value;
                         text = new TextDecoder().decode(value);
                         this.rx_buffer += text;
-                        console.log("[[" + text + "]]");
+                        console.log("receive[" + text + "]");
                         splited = this.rx_buffer.split(/\r*\n/g);
                         for (i = 0; i < splited.length - 1; ++i) {
                             line = splited.shift();
@@ -180,6 +191,10 @@ var BLEUART = /** @class */ (function (_super) {
                                 }
                                 else {
                                     (_a = this.readlineBuffer) === null || _a === void 0 ? void 0 : _a.push(line);
+                                }
+                                if (this.waitBlankResolve && line === "") {
+                                    this.clear();
+                                    this.waitBlankResolve();
                                 }
                                 this.emit("receive", line);
                             }

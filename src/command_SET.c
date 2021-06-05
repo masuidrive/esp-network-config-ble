@@ -47,4 +47,5 @@ void command_SET_MULTI(int argc, const char *args[], int datac, const char *data
 
   free(value);
   nordic_uart_sendln("OK");
+  nordic_uart_sendln("");
 }

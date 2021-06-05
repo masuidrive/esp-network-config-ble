@@ -14,12 +14,24 @@ import CachedIcon from '@material-ui/icons/Cached';
 
 type Props = {
   smartConfig?: BLESmartConfig
-  onSelect: (ssid: string) => void
+  onSelect: (ssidItem?: SSIDItem) => void
 };
 
 const useStyles = makeStyles((theme) => ({
 }));
 
+function uniqueSSIDItem(items: SSIDItem[]): SSIDItem[] {
+  console.log(items);
+  const result:SSIDItem[] = [];
+  const map = new Set<string>();
+  for (const item of items) {
+      if(!map.has(item.ssid)){
+          map.add(item.ssid);    // set any value to Map
+          result.push(item);
+      }
+  }
+  return result;
+}
 
 export function SelectSSID(props: Props) {
   const classes = useStyles();
@@ -27,7 +39,7 @@ export function SelectSSID(props: Props) {
   useEffect(() => {
     if(props.smartConfig !== undefined) {
       (async () => {
-        setItems(await props.smartConfig!.list_ssid());
+        setItems(uniqueSSIDItem(await props.smartConfig!.list_ssid()));
       })();
     }
   }, [props.smartConfig]);
@@ -44,11 +56,13 @@ export function SelectSSID(props: Props) {
       <Container>
         <List>
           {items!.map((item) =>
-            <ListItem button key={item.ssid}>
-              {item.isOpen() ? <></> :
+            <ListItem button key={item.ssid} onClick={() => props.onSelect(item)}>
               <ListItemIcon>
-                <LockIcon />
-              </ListItemIcon>}
+              {
+                item.isOpen() ? <></> :
+                  <LockIcon />
+              }
+              </ListItemIcon>
               <ListItemText
                 primary={item.ssid}
               />

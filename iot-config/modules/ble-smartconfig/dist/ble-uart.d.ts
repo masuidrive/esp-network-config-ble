@@ -17,6 +17,9 @@ export declare class BLEUART extends EventEmitter {
     readlineBuffer: string[];
     readlineResolve?: (value: string | PromiseLike<string>) => void;
     readline(): Promise<string>;
+    waitBlankResolve?: () => void;
+    waitBlank(): Promise<void>;
+    clear(): void;
     rx_buffer: string;
     handleNotifications(event: Event): Promise<void>;
 }

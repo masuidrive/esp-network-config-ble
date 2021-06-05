@@ -11,5 +11,7 @@ export declare class BLESmartConfig {
     uart: BLEUART;
     constructor(uart: BLEUART);
     list_ssid(): Promise<SSIDItem[]>;
+    test_wifi_connection(): Promise<boolean>;
+    set_wifi(ssid: string, passphrase: string): Promise<boolean>;
 }
 //# sourceMappingURL=index.d.ts.map

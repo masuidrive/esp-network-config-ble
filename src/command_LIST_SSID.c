@@ -36,9 +36,10 @@ void command_LIST_SSID(int argc, const char *args[], int datac, const char *data
   ESP_LOGI(TAG, "ap_record_count = %d", ap_record_count);
 
   for (int i = 0; i < ap_record_count; i++) {
+    const wifi_ap_record_t *ap = &ap_record_list[i];
+    ESP_LOGI(TAG, "Found SSID: %s, authmode: %d, rssi: %d", (const char *)ap->ssid, ap->authmode, ap->rssi);
     // https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/network/esp_wifi.html#_CPPv416wifi_auth_mode_t
-    snprintf(buf, LINE_LENGTH, "%d,%d,%s", ap_record_list[i].authmode, ap_record_list[i].rssi,
-             (const char *)ap_record_list[i].ssid);
+    snprintf(buf, LINE_LENGTH, "%d,%d,%s", ap->authmode, ap->rssi, (const char *)ap->ssid);
     nordic_uart_sendln(buf);
   }
   nordic_uart_sendln("");

@@ -15,6 +15,5 @@ void command_CHECK_WIFI(int argc, const char *args[], int datac, const char *dat
     nordic_uart_sendln("ERROR: Failed to connect");
     ESP_LOGI(TAG, "Failed to connect");
   }
-
   nordic_uart_sendln("");
 }

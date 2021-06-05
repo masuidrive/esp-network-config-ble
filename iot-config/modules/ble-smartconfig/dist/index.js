@@ -58,11 +58,12 @@ var BLESmartConfig = /** @class */ (function () {
     }
     BLESmartConfig.prototype.list_ssid = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var result, line;
+            var result, line, item;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
                         result = [];
+                        this.uart.clear();
                         return [4 /*yield*/, this.uart.sendln("LIST_SSID")];
                     case 1:
                         _a.sent();
@@ -72,14 +73,56 @@ var BLESmartConfig = /** @class */ (function () {
                         return [4 /*yield*/, this.uart.readline()];
                     case 3:
                         line = _a.sent();
-                        console.log("[" + line + "]");
                         if (line === "")
                             return [3 /*break*/, 4];
-                        result.push(new SSIDItem(line));
+                        item = new SSIDItem(line);
+                        if (item.ssid !== "") {
+                            result.push(item);
+                        }
                         return [3 /*break*/, 2];
-                    case 4:
-                        console.log(result);
-                        return [2 /*return*/, result];
+                    case 4: return [2 /*return*/, result];
+                }
+            });
+        });
+    };
+    BLESmartConfig.prototype.test_wifi_connection = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            var result;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        this.uart.clear();
+                        return [4 /*yield*/, this.uart.sendln("CHECK_WIFI")];
+                    case 1:
+                        _a.sent();
+                        return [4 /*yield*/, this.uart.readline()];
+                    case 2:
+                        result = _a.sent();
+                        return [4 /*yield*/, this.uart.waitBlank()];
+                    case 3:
+                        _a.sent();
+                        return [2 /*return*/, !!result.match(/^OK/)];
+                }
+            });
+        });
+    };
+    BLESmartConfig.prototype.set_wifi = function (ssid, passphrase) {
+        return __awaiter(this, void 0, void 0, function () {
+            var result;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        this.uart.clear();
+                        return [4 /*yield*/, this.uart.sendln("SET_WIFI " + JSON.stringify(ssid) + " " + JSON.stringify(passphrase))];
+                    case 1:
+                        _a.sent();
+                        return [4 /*yield*/, this.uart.readline()];
+                    case 2:
+                        result = _a.sent();
+                        return [4 /*yield*/, this.uart.waitBlank()];
+                    case 3:
+                        _a.sent();
+                        return [2 /*return*/, !!result.match(/^OK/)];
                 }
             });
         });
