@@ -3,7 +3,7 @@ import { makeStyles } from "@material-ui/core/styles";
 import "./App.css";
 import { BLESmartConfig, SSIDItem } from "ble-smartconfig";
 import Container from "@material-ui/core/Container";
-import TextField from '@material-ui/core/TextField';
+import CircularProgress from '@material-ui/core/CircularProgress';
 
 type Props = {
   smartConfig?: BLESmartConfig

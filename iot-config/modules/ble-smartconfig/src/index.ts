@@ -31,6 +31,7 @@ export class BLESmartConfig {
     await this.uart.sendln("LIST_SSID");
     while (true) {
       const line = await this.uart.readline();
+      console.log(`[${line}]`);
       if (line === "") break;
       const item = new SSIDItem(line);
       if (item.ssid !== "") {

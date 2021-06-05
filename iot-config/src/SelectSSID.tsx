@@ -11,6 +11,9 @@ import Divider from '@material-ui/core/Divider';
 import LockIcon from '@material-ui/icons/Lock';
 import EditIcon from '@material-ui/icons/Edit';
 import CachedIcon from '@material-ui/icons/Cached';
+import CircularProgress from '@material-ui/core/CircularProgress';
+import Chip from '@material-ui/core/Chip';
+import Box from '@material-ui/core/Box';
 
 type Props = {
   smartConfig?: BLESmartConfig
@@ -18,6 +21,9 @@ type Props = {
 };
 
 const useStyles = makeStyles((theme) => ({
+  loadingBox: {
+    "margin-top": "2em"
+  }
 }));
 
 function uniqueSSIDItem(items: SSIDItem[]): SSIDItem[] {
@@ -49,7 +55,16 @@ export function SelectSSID(props: Props) {
   }
 
   if(items === undefined) {
-    return <div>loading...</div>
+    return <Box
+      display="flex"
+      justifyContent="center"
+      className={classes.loadingBox}
+    >
+      <Chip
+        label="Loading SSID List..."
+        icon={<CircularProgress size={16} />}
+      />
+    </Box>
   }
   else {
     return (

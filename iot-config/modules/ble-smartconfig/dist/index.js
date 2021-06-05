@@ -73,6 +73,7 @@ var BLESmartConfig = /** @class */ (function () {
                         return [4 /*yield*/, this.uart.readline()];
                     case 3:
                         line = _a.sent();
+                        console.log("[" + line + "]");
                         if (line === "")
                             return [3 /*break*/, 4];
                         item = new SSIDItem(line);
