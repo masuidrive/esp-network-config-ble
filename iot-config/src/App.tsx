@@ -6,12 +6,12 @@ import { Wizard, Steps, Step } from 'react-albus';
 import { ConnectDevice } from "./ConnectDevice"
 import { SelectSSID } from "./SelectSSID"
 import { PassphraseForm } from "./PassphraseForm"
-
+import { WiFiConnect } from "./WiFiConnect";
 
 import Container from '@material-ui/core/Container';
-import Button from '@material-ui/core/Button';
 import CssBaseline from '@material-ui/core/CssBaseline';
-import { WiFiConnect } from "./WiFiConnect";
+import Button from '@material-ui/core/Button';
+import Typography from '@material-ui/core/Typography';
 
 
 const useStyles = makeStyles((theme) => ({

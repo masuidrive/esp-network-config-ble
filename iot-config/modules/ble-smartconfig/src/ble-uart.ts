@@ -95,7 +95,6 @@ export class BLEUART extends EventEmitter {
         const value = (event!.target! as any).value;
         const text = new TextDecoder().decode(value);
         this.rx_buffer += text;
-        console.log(`receive[${text}]`);
 
         let splited = this.rx_buffer.split(/\r*\n/g);
         for (let i = 0; i < splited.length - 1; ++i) {
