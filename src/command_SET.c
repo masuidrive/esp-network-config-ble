@@ -22,6 +22,7 @@ void command_SET_STR(int argc, const char *args[], int datac, const char *data[]
     ESP_ERROR_CHECK(nvs_set_str(nvs_handle, args[0], args[1]));
     nvs_close(nvs_handle);
     nordic_uart_sendln("OK");
+    nordic_uart_sendln("");
   } else {
     nordic_uart_sendln("Error: ignore command format");
   }

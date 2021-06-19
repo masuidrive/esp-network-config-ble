@@ -52,6 +52,7 @@ static int uart_receive(uint16_t conn_handle, uint16_t attr_handle, struct ble_g
 
     case '\n':
       rx_line_buffer[rx_line_buffer_pos++] = '\0';
+      puts(rx_line_buffer);
       UBaseType_t res =
           xRingbufferSend(nordic_uart_rx_buf_handle, rx_line_buffer, rx_line_buffer_pos, pdMS_TO_TICKS(1000));
       if (res != pdTRUE) {

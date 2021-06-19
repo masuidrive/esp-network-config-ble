@@ -87,6 +87,7 @@ static void uartIncomingTask(void *parameter) {
               size_t dataline_size;
               char *dataline = (char *)xRingbufferReceive(nordic_uart_rx_buf_handle, &dataline_size, portMAX_DELAY);
               size_t dataline_len = strlen(dataline);
+              printf("len=%d\n", dataline_len);
               if (dataline_len == 0)
                 break;
               data[datac] = malloc(dataline_len + 1);
@@ -94,6 +95,7 @@ static void uartIncomingTask(void *parameter) {
               vRingbufferReturnItem(nordic_uart_rx_buf_handle, (void *)dataline);
             };
 
+            printf("CMD=%s\n", commands[i].name);
             commands[i].func(argc, (const char **)args, datac, (const char **)data);
             for (int j = 0; j < datac; ++j)
               free(data[j]);

@@ -124,9 +124,11 @@ var BLEUART = /** @class */ (function (_super) {
                         _a.label = 1;
                     case 1:
                         if (!(i < arrayBuffe.length)) return [3 /*break*/, 4];
+                        console.log("> write", text);
                         return [4 /*yield*/, this.rxChar.writeValue(arrayBuffe.slice(i, i + BLE_MTU))];
                     case 2:
                         _a.sent();
+                        console.log("<write", text);
                         _a.label = 3;
                     case 3:
                         i += BLE_MTU;
@@ -180,7 +182,6 @@ var BLEUART = /** @class */ (function (_super) {
                         value = event.target.value;
                         text = new TextDecoder().decode(value);
                         this.rx_buffer += text;
-                        console.log("receive[" + text + "]");
                         splited = this.rx_buffer.split(/\r*\n/g);
                         for (i = 0; i < splited.length - 1; ++i) {
                             line = splited.shift();

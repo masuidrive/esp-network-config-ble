@@ -36,7 +36,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.BLESmartConfig = exports.SSIDItem = exports.BLEUART = void 0;
+exports.BLESmartConfig = exports.IoTConfig = exports.SSIDItem = exports.BLEUART = void 0;
 var ble_uart_1 = require("./ble-uart");
 Object.defineProperty(exports, "BLEUART", { enumerable: true, get: function () { return ble_uart_1.BLEUART; } });
 var SSIDItem = /** @class */ (function () {
@@ -52,6 +52,19 @@ var SSIDItem = /** @class */ (function () {
     return SSIDItem;
 }());
 exports.SSIDItem = SSIDItem;
+var IoTConfig = /** @class */ (function () {
+    function IoTConfig() {
+        this.mqtt_host = "";
+        this.mqtt_port = "443";
+        this.mqtt_topic = "";
+        this.root_ca = "";
+        this.cert = "";
+        this.priv = "";
+        this.client_id = "";
+    }
+    return IoTConfig;
+}());
+exports.IoTConfig = IoTConfig;
 var BLESmartConfig = /** @class */ (function () {
     function BLESmartConfig(uart) {
         this.uart = uart;
@@ -73,7 +86,6 @@ var BLESmartConfig = /** @class */ (function () {
                         return [4 /*yield*/, this.uart.readline()];
                     case 3:
                         line = _a.sent();
-                        console.log("[" + line + "]");
                         if (line === "")
                             return [3 /*break*/, 4];
                         item = new SSIDItem(line);
@@ -99,9 +111,11 @@ var BLESmartConfig = /** @class */ (function () {
                         return [4 /*yield*/, this.uart.readline()];
                     case 2:
                         result = _a.sent();
+                        console.log("test: " + result);
                         return [4 /*yield*/, this.uart.waitBlank()];
                     case 3:
                         _a.sent();
+                        console.log("test done");
                         return [2 /*return*/, !!result.match(/^OK/)];
                 }
             });
@@ -123,6 +137,110 @@ var BLESmartConfig = /** @class */ (function () {
                         return [4 /*yield*/, this.uart.waitBlank()];
                     case 3:
                         _a.sent();
+                        return [2 /*return*/, !!result.match(/^OK/)];
+                }
+            });
+        });
+    };
+    BLESmartConfig.prototype.set_awsiot = function (config) {
+        return __awaiter(this, void 0, void 0, function () {
+            var result;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        this.uart.clear();
+                        return [4 /*yield*/, this.send_text("mqtt_host", config.mqtt_host)];
+                    case 1:
+                        _a.sent();
+                        return [4 /*yield*/, this.send_text("mqtt_port", config.mqtt_port)];
+                    case 2:
+                        _a.sent();
+                        return [4 /*yield*/, this.send_text("mqtt_topic", config.mqtt_topic)];
+                    case 3:
+                        _a.sent();
+                        return [4 /*yield*/, this.send_text_multiline("iot_root_ca", config.root_ca)];
+                    case 4:
+                        _a.sent();
+                        return [4 /*yield*/, this.send_text_multiline("iot_cert", config.cert)];
+                    case 5:
+                        _a.sent();
+                        return [4 /*yield*/, this.send_text_multiline("iot_priv", config.priv)];
+                    case 6:
+                        _a.sent();
+                        return [4 /*yield*/, this.send_text("iot_client_id", config.client_id)];
+                    case 7:
+                        _a.sent();
+                        return [4 /*yield*/, this.uart.readline()];
+                    case 8:
+                        result = _a.sent();
+                        return [4 /*yield*/, this.uart.waitBlank()];
+                    case 9:
+                        _a.sent();
+                        return [2 /*return*/, !!result.match(/^OK/)];
+                }
+            });
+        });
+    };
+    BLESmartConfig.prototype.send_text = function (key, value) {
+        return __awaiter(this, void 0, void 0, function () {
+            var result;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        console.log("SEND " + key);
+                        return [4 /*yield*/, this.uart.sendln("SET_STR " + key + " " + JSON.stringify(value))];
+                    case 1:
+                        _a.sent();
+                        return [4 /*yield*/, this.uart.readline()];
+                    case 2:
+                        result = _a.sent();
+                        console.log("RESULT " + key + ": " + result);
+                        return [4 /*yield*/, this.uart.waitBlank()];
+                    case 3:
+                        _a.sent();
+                        console.log("FIN " + key);
+                        return [2 /*return*/, !!result.match(/^OK/)];
+                }
+            });
+        });
+    };
+    BLESmartConfig.prototype.send_text_multiline = function (key, value) {
+        return __awaiter(this, void 0, void 0, function () {
+            var lines, _i, lines_1, line, result;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        console.log("SENDm " + key);
+                        return [4 /*yield*/, this.uart.sendln("SET_MULTI " + key)];
+                    case 1:
+                        _a.sent();
+                        console.log("VAL1:", value);
+                        console.log("VAL2:", value.replaceAll(/\r/g, "").replace(/\n+$/, "").split(/\n+/));
+                        lines = value.replaceAll(/\r/g, "").replace(/\n+$/, "").split(/\n+/);
+                        _i = 0, lines_1 = lines;
+                        _a.label = 2;
+                    case 2:
+                        if (!(_i < lines_1.length)) return [3 /*break*/, 5];
+                        line = lines_1[_i];
+                        console.log("L:" + line);
+                        return [4 /*yield*/, this.uart.sendln(line)];
+                    case 3:
+                        _a.sent();
+                        _a.label = 4;
+                    case 4:
+                        _i++;
+                        return [3 /*break*/, 2];
+                    case 5: return [4 /*yield*/, this.uart.sendln("")];
+                    case 6:
+                        _a.sent();
+                        return [4 /*yield*/, this.uart.readline()];
+                    case 7:
+                        result = _a.sent();
+                        console.log("RESULTm " + key + ": " + result);
+                        return [4 /*yield*/, this.uart.waitBlank()];
+                    case 8:
+                        _a.sent();
+                        console.log("FINm " + key);
                         return [2 /*return*/, !!result.match(/^OK/)];
                 }
             });

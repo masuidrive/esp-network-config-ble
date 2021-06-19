@@ -8,8 +8,8 @@ import CircularProgress from '@material-ui/core/CircularProgress';
 type Props = {
   smartConfig?: BLESmartConfig
   ssidItem: SSIDItem,
-  passphrase?: string
-  onComplete: (passohrase: string) => void
+  passphrase?: string,
+  onComplete: (connected: boolean) => void
 };
 
 const useStyles = makeStyles((theme) => ({
@@ -30,7 +30,6 @@ enum Status {
 }
 
 export function WiFiConnect(props: Props) {
-  const classes = useStyles();
   const [status, setStatus] = useState<Status>(Status.idle);
 
   useEffect(() => {
@@ -48,9 +47,11 @@ export function WiFiConnect(props: Props) {
         const connected = await props.smartConfig!.test_wifi_connection();
         if(connected) {
           setStatus(Status.connected);
+          props.onComplete(true);
         }
         else {
           setStatus(Status.failed);
+          props.onComplete(false);
         }
       })();
     }
@@ -58,7 +59,7 @@ export function WiFiConnect(props: Props) {
 
   return (
     <Container>
-      <div>Status: {status}</div>
+      <div>Connecting to {props.ssidItem.ssid}...</div>
     </Container>
   );
 

@@ -1,12 +1,14 @@
 import React, { useState } from "react";
 import { makeStyles } from '@material-ui/core/styles';
 import './App.css';
-import { BLESmartConfig, BLEUART, SSIDItem } from 'ble-smartconfig';
+import { BLESmartConfig, BLEUART, SSIDItem, IoTConfig } from 'ble-smartconfig';
 import { Wizard, Steps, Step } from 'react-albus';
 import { ConnectDevice } from "./ConnectDevice"
 import { SelectSSID } from "./SelectSSID"
 import { PassphraseForm } from "./PassphraseForm"
 import { WiFiConnect } from "./WiFiConnect";
+import { AWSConfigForm } from "./AWSConfigForm";
+import { SendAWSConfig } from "./SendAWSConfig";
 
 import Container from '@material-ui/core/Container';
 import CssBaseline from '@material-ui/core/CssBaseline';
@@ -40,6 +42,11 @@ function App() {
   const [smartConfig, setSmartConfig] = useState<BLESmartConfig | undefined>(undefined);
   const [ssidItem, setSsidItem] = useState<SSIDItem | undefined>(undefined);
   const [passphrase, setPassphrase] = useState<string>("");
+
+  const savedConfigStr = localStorage.getItem('iotConfig');
+  let config = savedConfigStr ? JSON.parse(savedConfigStr) as IoTConfig : new IoTConfig();
+
+  const [iotConfig, setIotConfig] = useState<IoTConfig>(config);
 
   return (
     <Container component="main" maxWidth="xs">
@@ -86,16 +93,51 @@ function App() {
           />
           <Step
             id="dumbledora"
-            render={({ previous }) => (
+            render={({ next, previous }) => (
               <div>
                 {ssidItem ?
-                <WiFiConnect smartConfig={smartConfig} ssidItem={ssidItem} passphrase={passphrase} onComplete={(passohrase: string) =>{
-
-                }}/>
+                <WiFiConnect smartConfig={smartConfig} ssidItem={ssidItem} passphrase={passphrase} onComplete={(connected: boolean) =>
+                  next()
+                }/>
                 :<></>}
+                <button onClick={previous}>Previous</button>
+                <button onClick={next}>Next</button>
               </div>
             )}
           />
+          <Step
+            id="AWSConfigForm"
+            render={({ next, previous }) => (
+              <div>
+                <AWSConfigForm config={iotConfig} onChange={(config: IoTConfig) => {
+                  setIotConfig(config);
+                  localStorage.setItem('iotConfig', JSON.stringify(config));
+                }}/>
+                <button onClick={previous}>Previous</button>
+                <button onClick={next}>Next</button>
+              </div>
+            )}
+          />
+          <Step
+              id="SendAWSConfig"
+              render={({ next, previous }) => (
+                <div>
+                  <SendAWSConfig iotConfig={iotConfig} smartConfig={smartConfig} onComplete={(connected: boolean) =>
+                    next()
+                  }/>
+                  <button onClick={previous}>Previous</button>
+                </div>
+              )}
+            />
+          <Step
+              id="finished"
+              render={({ previous }) => (
+                <div>
+                  Finished.
+                  <button onClick={previous}>Previous</button>
+                </div>
+              )}
+            />
         </Steps>
       </Wizard>
     </Container>
