@@ -1,3 +1,4 @@
+import { StateMachine, ITransition, tFrom } from "./fsm";
 import { BLEUART } from "./ble-uart";
 export { BLEUART } from "./ble-uart";
 
@@ -28,14 +29,62 @@ export class IoTConfig {
   client_id: string = "";
 }
 
+export const State = {
+  Disconnected: "Disconnected",
+  Connecting: "Connecting",
+  Connected: "Connected",
+  LoadingListSSID: "LoadingListSSID",
+} as const;
+export type States = typeof State[keyof typeof State];
+
+export const BLESmartConfigError = {
+  Disconnected: "Disconnected",
+  AlreadyConnected: "AlreadyConnected",
+} as const;
+export type BLESmartConfigErrors =
+  typeof BLESmartConfigError[keyof typeof BLESmartConfigError];
+
 export class BLESmartConfig {
   uart: BLEUART;
+  protected state: StateMachine<States>;
+  protected onChange?: (
+    prevState: States,
+    currentState: States
+  ) => void | Promise<void>;
 
-  constructor(uart: BLEUART) {
+  transitions = [
+    tFrom(State.Disconnected, State.Connecting),
+    tFrom(State.Connecting, State.Connected),
+    tFrom(State.Connecting, State.Disconnected),
+    tFrom(State.Connected, State.LoadingListSSID),
+    tFrom(State.LoadingListSSID, State.Connected),
+  ];
+
+  constructor(
+    uart: BLEUART,
+    onChange: (prevState: States, currentState: States) => void | Promise<void>
+  ) {
     this.uart = uart;
+    this.state = new StateMachine<States>(
+      State.Disconnected,
+      this.transitions,
+      onChange
+    );
+  }
+
+  async connect(): Promise<void> {
+    this.state.guard([State.Connecting, State.Disconnected]);
+    if (await this.uart.start()) {
+      this.state.moveTo(State.Connecting);
+    } else {
+      this.state.moveTo(State.Disconnected);
+    }
   }
 
   async list_ssid(): Promise<SSIDItem[]> {
+    this.state.guard([State.LoadingListSSID, State.Disconnected]);
+    this.state.moveTo(State.LoadingListSSID);
+
     let result: SSIDItem[] = [];
     this.uart.clear();
     await this.uart.sendln("LIST_SSID");
@@ -47,6 +96,8 @@ export class BLESmartConfig {
         result.push(item);
       }
     }
+    this.state.moveTo(State.Connected);
+
     return result;
   }
 
@@ -87,23 +138,14 @@ export class BLESmartConfig {
   }
 
   async send_text(key: string, value: string): Promise<boolean> {
-    console.log(`SEND ${key}`);
     await this.uart.sendln(`SET_STR ${key} ${JSON.stringify(value)}`);
     const result = await this.uart.readline();
-    console.log(`RESULT ${key}: ${result}`);
     await this.uart.waitBlank();
-    console.log(`FIN ${key}`);
     return !!result.match(/^OK/);
   }
 
   async send_text_multiline(key: string, value: string): Promise<boolean> {
-    console.log(`SENDm ${key}`);
     await this.uart.sendln(`SET_MULTI ${key}`);
-    console.log("VAL1:", value);
-    console.log(
-      "VAL2:",
-      value.replaceAll(/\r/g, "").replace(/\n+$/, "").split(/\n+/)
-    );
 
     const lines = value.replaceAll(/\r/g, "").replace(/\n+$/, "").split(/\n+/);
     for (const line of lines) {
@@ -113,9 +155,7 @@ export class BLESmartConfig {
 
     await this.uart.sendln("");
     const result = await this.uart.readline();
-    console.log(`RESULTm ${key}: ${result}`);
     await this.uart.waitBlank();
-    console.log(`FINm ${key}`);
     return !!result.match(/^OK/);
   }
 }

@@ -10,7 +10,7 @@ export declare class BLEUART extends EventEmitter {
     rxChar?: BluetoothRemoteGATTCharacteristic;
     txChar?: BluetoothRemoteGATTCharacteristic;
     constructor(namePrefix: string, serviceUUID?: string, rxUUID?: string, txUUID?: string);
-    start(): Promise<void>;
+    start(): Promise<boolean>;
     onDisconnected(_: BluetoothDevice, ev: Event): void;
     send(text: string): Promise<void>;
     sendln(text: string): Promise<void>;

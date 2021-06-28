@@ -38,7 +38,6 @@ const useStyles = makeStyles((theme) => ({
 
 function App() {
   const classes = useStyles();
-  const [uart, setUart] = useState<BLEUART | undefined>(undefined);
   const [smartConfig, setSmartConfig] = useState<BLESmartConfig | undefined>(undefined);
   const [ssidItem, setSsidItem] = useState<SSIDItem | undefined>(undefined);
   const [passphrase, setPassphrase] = useState<string>("");
@@ -57,9 +56,8 @@ function App() {
             id="merlin"
             render={({ next }) => (
               <div>
-                <ConnectDevice onConnect={(uart: BLEUART) => {
-                  setUart(uart);
-                  setSmartConfig(new BLESmartConfig(uart));
+                <ConnectDevice onConnect={(smartConfig: BLESmartConfig) => {
+                  setSmartConfig(smartConfig);
                   next();
                 }}/>
               </div>

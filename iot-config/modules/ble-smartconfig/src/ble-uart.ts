@@ -24,28 +24,33 @@ export class BLEUART extends EventEmitter {
     this.txUUID = txUUID;
   }
 
-  async start() {
-    this.bluetoothDevice = await navigator.bluetooth.requestDevice({
-      filters: [
-        { services: [this.serviceUUID] },
-        { namePrefix: this.namePrefix },
-      ],
-    });
+  async start(): Promise<boolean> {
+    try {
+      this.bluetoothDevice = await navigator.bluetooth.requestDevice({
+        filters: [
+          { services: [this.serviceUUID] },
+          { namePrefix: this.namePrefix },
+        ],
+      });
 
-    this.bluetoothDevice!.addEventListener(
-      "gattserverdisconnected",
-      this.onDisconnected.bind(this) as any
-    );
+      this.bluetoothDevice!.addEventListener(
+        "gattserverdisconnected",
+        this.onDisconnected.bind(this) as any
+      );
 
-    const server = await this.bluetoothDevice!.gatt!.connect();
-    const service = await server.getPrimaryService(this.serviceUUID);
-    this.rxChar = await service.getCharacteristic(this.rxUUID);
-    this.txChar = await service.getCharacteristic(this.txUUID);
-    await this.txChar.startNotifications();
-    this.txChar!.addEventListener(
-      "characteristicvaluechanged",
-      this.handleNotifications.bind(this)
-    );
+      const server = await this.bluetoothDevice!.gatt!.connect();
+      const service = await server.getPrimaryService(this.serviceUUID);
+      this.rxChar = await service.getCharacteristic(this.rxUUID);
+      this.txChar = await service.getCharacteristic(this.txUUID);
+      await this.txChar.startNotifications();
+      this.txChar!.addEventListener(
+        "characteristicvaluechanged",
+        this.handleNotifications.bind(this)
+      );
+      return true;
+    } catch (error) {
+      return false;
+    }
   }
 
   onDisconnected(_: BluetoothDevice, ev: Event) {

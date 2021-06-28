@@ -36,7 +36,8 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.BLESmartConfig = exports.IoTConfig = exports.SSIDItem = exports.BLEUART = void 0;
+exports.BLESmartConfig = exports.BLESmartConfigError = exports.State = exports.IoTConfig = exports.SSIDItem = exports.BLEUART = void 0;
+var fsm_1 = require("./fsm");
 var ble_uart_1 = require("./ble-uart");
 Object.defineProperty(exports, "BLEUART", { enumerable: true, get: function () { return ble_uart_1.BLEUART; } });
 var SSIDItem = /** @class */ (function () {
@@ -65,16 +66,55 @@ var IoTConfig = /** @class */ (function () {
     return IoTConfig;
 }());
 exports.IoTConfig = IoTConfig;
+exports.State = {
+    Disconnected: "Disconnected",
+    Connecting: "Connecting",
+    Connected: "Connected",
+    LoadingListSSID: "LoadingListSSID",
+};
+exports.BLESmartConfigError = {
+    Disconnected: "Disconnected",
+    AlreadyConnected: "AlreadyConnected",
+};
 var BLESmartConfig = /** @class */ (function () {
-    function BLESmartConfig(uart) {
+    function BLESmartConfig(uart, onChange) {
+        this.transitions = [
+            fsm_1.tFrom(exports.State.Disconnected, exports.State.Connecting),
+            fsm_1.tFrom(exports.State.Connecting, exports.State.Connected),
+            fsm_1.tFrom(exports.State.Connecting, exports.State.Disconnected),
+            fsm_1.tFrom(exports.State.Connected, exports.State.LoadingListSSID),
+            fsm_1.tFrom(exports.State.LoadingListSSID, exports.State.Connected),
+        ];
         this.uart = uart;
+        this.state = new fsm_1.StateMachine(exports.State.Disconnected, this.transitions, onChange);
     }
+    BLESmartConfig.prototype.connect = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        this.state.guard([exports.State.Connecting, exports.State.Disconnected]);
+                        return [4 /*yield*/, this.uart.start()];
+                    case 1:
+                        if (_a.sent()) {
+                            this.state.moveTo(exports.State.Connecting);
+                        }
+                        else {
+                            this.state.moveTo(exports.State.Disconnected);
+                        }
+                        return [2 /*return*/];
+                }
+            });
+        });
+    };
     BLESmartConfig.prototype.list_ssid = function () {
         return __awaiter(this, void 0, void 0, function () {
             var result, line, item;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
+                        this.state.guard([exports.State.LoadingListSSID, exports.State.Disconnected]);
+                        this.state.moveTo(exports.State.LoadingListSSID);
                         result = [];
                         this.uart.clear();
                         return [4 /*yield*/, this.uart.sendln("LIST_SSID")];
@@ -93,7 +133,9 @@ var BLESmartConfig = /** @class */ (function () {
                             result.push(item);
                         }
                         return [3 /*break*/, 2];
-                    case 4: return [2 /*return*/, result];
+                    case 4:
+                        this.state.moveTo(exports.State.Connected);
+                        return [2 /*return*/, result];
                 }
             });
         });
@@ -186,19 +228,15 @@ var BLESmartConfig = /** @class */ (function () {
             var result;
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0:
-                        console.log("SEND " + key);
-                        return [4 /*yield*/, this.uart.sendln("SET_STR " + key + " " + JSON.stringify(value))];
+                    case 0: return [4 /*yield*/, this.uart.sendln("SET_STR " + key + " " + JSON.stringify(value))];
                     case 1:
                         _a.sent();
                         return [4 /*yield*/, this.uart.readline()];
                     case 2:
                         result = _a.sent();
-                        console.log("RESULT " + key + ": " + result);
                         return [4 /*yield*/, this.uart.waitBlank()];
                     case 3:
                         _a.sent();
-                        console.log("FIN " + key);
                         return [2 /*return*/, !!result.match(/^OK/)];
                 }
             });
@@ -209,13 +247,9 @@ var BLESmartConfig = /** @class */ (function () {
             var lines, _i, lines_1, line, result;
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0:
-                        console.log("SENDm " + key);
-                        return [4 /*yield*/, this.uart.sendln("SET_MULTI " + key)];
+                    case 0: return [4 /*yield*/, this.uart.sendln("SET_MULTI " + key)];
                     case 1:
                         _a.sent();
-                        console.log("VAL1:", value);
-                        console.log("VAL2:", value.replaceAll(/\r/g, "").replace(/\n+$/, "").split(/\n+/));
                         lines = value.replaceAll(/\r/g, "").replace(/\n+$/, "").split(/\n+/);
                         _i = 0, lines_1 = lines;
                         _a.label = 2;
@@ -236,11 +270,9 @@ var BLESmartConfig = /** @class */ (function () {
                         return [4 /*yield*/, this.uart.readline()];
                     case 7:
                         result = _a.sent();
-                        console.log("RESULTm " + key + ": " + result);
                         return [4 /*yield*/, this.uart.waitBlank()];
                     case 8:
                         _a.sent();
-                        console.log("FINm " + key);
                         return [2 /*return*/, !!result.match(/^OK/)];
                 }
             });

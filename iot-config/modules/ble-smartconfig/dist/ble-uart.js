@@ -73,10 +73,11 @@ var BLEUART = /** @class */ (function (_super) {
     }
     BLEUART.prototype.start = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var _a, server, service, _b, _c;
+            var _a, server, service, _b, _c, error_1;
             return __generator(this, function (_d) {
                 switch (_d.label) {
                     case 0:
+                        _d.trys.push([0, 7, , 8]);
                         _a = this;
                         return [4 /*yield*/, navigator.bluetooth.requestDevice({
                                 filters: [
@@ -105,7 +106,11 @@ var BLEUART = /** @class */ (function (_super) {
                     case 6:
                         _d.sent();
                         this.txChar.addEventListener("characteristicvaluechanged", this.handleNotifications.bind(this));
-                        return [2 /*return*/];
+                        return [2 /*return*/, true];
+                    case 7:
+                        error_1 = _d.sent();
+                        return [2 /*return*/, false];
+                    case 8: return [2 /*return*/];
                 }
             });
         });
@@ -124,11 +129,9 @@ var BLEUART = /** @class */ (function (_super) {
                         _a.label = 1;
                     case 1:
                         if (!(i < arrayBuffe.length)) return [3 /*break*/, 4];
-                        console.log("> write", text);
                         return [4 /*yield*/, this.rxChar.writeValue(arrayBuffe.slice(i, i + BLE_MTU))];
                     case 2:
                         _a.sent();
-                        console.log("<write", text);
                         _a.label = 3;
                     case 3:
                         i += BLE_MTU;

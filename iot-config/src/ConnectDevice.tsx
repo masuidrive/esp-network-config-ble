@@ -1,13 +1,13 @@
 import React, { useState } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import "./App.css";
-import { BLEUART } from "ble-smartconfig";
+import { BLESmartConfig, BLEUART, State, States } from "ble-smartconfig";
 import Container from "@material-ui/core/Container";
 import Button from "@material-ui/core/Button";
 import CircularProgress from '@material-ui/core/CircularProgress';
 
 type Props = {
-  onConnect: (uart: BLEUART) => void
+  onConnect: (smartConfig: BLESmartConfig) => void
 };
 
 const useStyles = makeStyles((theme) => ({
@@ -50,9 +50,15 @@ export function ConnectDevice(props: Props) {
           className={classes.button}
           onClick={async () => {
             let uart = new BLEUART("Nordic");
+            let smartConfig = new BLESmartConfig(uart,(
+              prevState: States,
+              currentState: States
+            ) => {
+              console.log("state:", prevState, currentState);
+            });
             setConnecting(true);
-            await uart.start();
-            props.onConnect(uart);
+            await smartConfig.connect();
+            props.onConnect(smartConfig);
             setConnecting(false);
           }}
         >
