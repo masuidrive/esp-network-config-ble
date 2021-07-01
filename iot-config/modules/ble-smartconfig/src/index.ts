@@ -155,6 +155,8 @@ export class BLESmartConfig {
 
     await this.uart.sendln("");
     const result = await this.uart.readline();
+    console.log("re:" + result);
+
     await this.uart.waitBlank();
     return !!result.match(/^OK/);
   }

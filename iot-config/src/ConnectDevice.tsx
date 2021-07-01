@@ -68,4 +68,3 @@ export function ConnectDevice(props: Props) {
     );
   }
 }
-

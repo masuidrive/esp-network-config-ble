@@ -25,15 +25,17 @@ export function SendAWSConfig(props: Props) {
       setStatus(Status.sending);
       if(!await props.smartConfig!.set_awsiot(props.iotConfig)) {
         setStatus(Status.failed);
+        props.onComplete(false);
         return;
       }
+      props.onComplete(true);
       setStatus(Status.sent);
     })();
   }, [props.iotConfig,props.smartConfig]);
 
   return (
     <Container>
-      <div>Setting...</div>
+      <div>Settings...</div>
     </Container>
   );
 

@@ -270,6 +270,7 @@ var BLESmartConfig = /** @class */ (function () {
                         return [4 /*yield*/, this.uart.readline()];
                     case 7:
                         result = _a.sent();
+                        console.log("re:" + result);
                         return [4 /*yield*/, this.uart.waitBlank()];
                     case 8:
                         _a.sent();
