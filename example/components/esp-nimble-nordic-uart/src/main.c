@@ -9,7 +9,6 @@
 #include "host/ble_hs.h"
 #include "nimble/nimble_port.h"
 #include "nimble/nimble_port_freertos.h"
-#include "nvs_flash.h"
 #include "services/gap/ble_svc_gap.h"
 #include "services/gatt/ble_svc_gatt.h"
 
@@ -51,12 +50,11 @@ static int uart_receive(uint16_t conn_handle, uint16_t attr_handle, struct ble_g
       break;
 
     case '\n':
-      rx_line_buffer[rx_line_buffer_pos++] = '\0';
-      puts(rx_line_buffer);
+      rx_line_buffer[rx_line_buffer_pos] = '\0';
       UBaseType_t res =
           xRingbufferSend(nordic_uart_rx_buf_handle, rx_line_buffer, rx_line_buffer_pos, pdMS_TO_TICKS(1000));
       if (res != pdTRUE) {
-        ESP_LOGE(TAG, "Failed to send item");
+        ESP_LOGE(TAG, "Failed to send item to ringbuffer");
       }
       rx_line_buffer_pos = 0;
       break;
@@ -144,7 +142,10 @@ void ble_app_on_sync(void) {
   ble_app_advertise();
 }
 
-void host_task(void *param) { nimble_port_run(); }
+void host_task(void *param) {
+  nimble_port_run();
+  nimble_port_freertos_deinit();
+}
 
 esp_err_t nordic_uart_send(const char *message) {
   const int len = strlen(message);
@@ -166,39 +167,63 @@ esp_err_t nordic_uart_send(const char *message) {
 }
 
 esp_err_t nordic_uart_sendln(const char *message) {
+  int err;
+
   if (strlen(message) > 0) {
-    int err1 = nordic_uart_send(message);
-    if (err1)
-      return ESP_FAIL;
+    err = nordic_uart_send(message);
+    if (err != ESP_OK)
+      return err;
   }
-  int err2 = nordic_uart_send("\r\n");
-  if (err2)
-    return ESP_FAIL;
+
+  err = nordic_uart_send("\r\n");
+  if (err != ESP_OK)
+    return err;
 
   return ESP_OK;
 }
 
 esp_err_t nordic_uart_start(void) {
-  nvs_flash_init();
-
-  // Receive BLE and split it with /\r*\n/
   rx_line_buffer = malloc(CONFIG_NORDIC_UART_MAX_LINE_LENGTH + 1);
   rx_line_buffer_pos = 0;
+  if (rx_line_buffer == NULL) {
+    nordic_uart_stop();
+    return ESP_FAIL;
+  }
 
   nordic_uart_rx_buf_handle = xRingbufferCreate(CONFIG_NORDIC_UART_RX_BUFFER_SIZE, RINGBUF_TYPE_NOSPLIT);
   if (nordic_uart_rx_buf_handle == NULL) {
     ESP_LOGE(TAG, "Failed to create ring buffer");
+    nordic_uart_stop();
+    return ESP_FAIL;
   }
 
-  esp_nimble_hci_and_controller_init();
-  nimble_port_init();
+  esp_err_r esp_err = ESP_OK;
+
+  esp_err = esp_nimble_hci_and_controller_init();
+  if (esp_err != ESP_OK) {
+    nordic_uart_stop();
+    return esp_err;
+  }
+
+  esp_err = nimble_port_init();
+  if (esp_err != ESP_OK) {
+    nordic_uart_stop();
+    return esp_err;
+  }
 
   ble_svc_gap_device_name_set(CONFIG_NORDIC_UART_DEVICE_NAME);
   ble_svc_gap_init();
   ble_svc_gatt_init();
 
-  ble_gatts_count_cfg(gat_svcs);
-  ble_gatts_add_svcs(gat_svcs);
+  if (ble_gatts_count_cfg(gat_svcs) != 0) {
+    nordic_uart_stop();
+    return ESP_FAIL;
+  }
+
+  if (ble_gatts_add_svcs(gat_svcs) != 0) {
+    nordic_uart_stop();
+    return ESP_FAIL;
+  }
 
   ble_hs_cfg.sync_cb = ble_app_on_sync;
   nimble_port_freertos_init(host_task);
@@ -206,4 +231,22 @@ esp_err_t nordic_uart_start(void) {
   return ESP_OK;
 }
 
-void nordic_uart_stop(void) {}
+void nordic_uart_stop(void) {
+  int ret = nimble_port_stop();
+  if (ret == 0) {
+    nimble_port_deinit();
+
+    ret = esp_nimble_hci_and_controller_deinit();
+    if (ret != ESP_OK) {
+      ESP_LOGE(TAG, "esp_nimble_hci_and_controller_deinit() failed with error: %d", ret);
+    }
+  }
+
+  if (nordic_uart_rx_buf_handle != NULL) {
+    vRingbufferDelete(nordic_uart_rx_buf_handle);
+    nordic_uart_rx_buf_handle = NULL;
+  }
+
+  free(rx_line_buffer);
+  rx_line_buffer = NULL;
+}
