@@ -13,6 +13,8 @@
 #include "nvs_flash.h"
 #include "tokenizer.h"
 
+static const char *TAG = "SmartConfig";
+
 #define MAX_COMMAND_ARGC 8
 #define MAX_DATA_LINES 64
 
@@ -69,7 +71,6 @@ static void uartIncomingTask(void *parameter) {
 
       for (int i = 0; i < sizeof(commands) / sizeof(struct BLECommand); ++i) {
         if (strcasecmp(command_name, commands[i].name) == 0) {
-          printf("Start command: %s\n", command_name);
           char *args[MAX_COMMAND_ARGC];
           int argc = 0;
           while (item && argc < MAX_COMMAND_ARGC) {
@@ -83,19 +84,22 @@ static void uartIncomingTask(void *parameter) {
           if (commands[i].multiline) {
             int datac = 0;
             char *data[CONFIG_NORDIC_UART_MAX_LINE_LENGTH];
+
             while (true) {
               size_t dataline_size;
               char *dataline = (char *)xRingbufferReceive(nordic_uart_rx_buf_handle, &dataline_size, portMAX_DELAY);
               size_t dataline_len = strlen(dataline);
-              printf("len=%d\n", dataline_len);
               if (dataline_len == 0)
                 break;
-              data[datac] = malloc(dataline_len + 1);
-              strcpy(data[datac++], dataline);
+              if (datac >= CONFIG_NORDIC_UART_MAX_LINE_LENGTH - 1) {
+                ESP_LOGF(TAG, "over lines");
+              } else {
+                data[datac] = malloc(dataline_len + 1);
+                strcpy(data[datac++], dataline);
+              }
               vRingbufferReturnItem(nordic_uart_rx_buf_handle, (void *)dataline);
             };
 
-            printf("CMD=%s\n", commands[i].name);
             commands[i].func(argc, (const char **)args, datac, (const char **)data);
             for (int j = 0; j < datac; ++j)
               free(data[j]);
@@ -105,11 +109,9 @@ static void uartIncomingTask(void *parameter) {
           break;
         }
       }
-
       vRingbufferReturnItem(nordic_uart_rx_buf_handle, (void *)line);
     }
   }
-
   vTaskDelete(NULL);
 }
 
