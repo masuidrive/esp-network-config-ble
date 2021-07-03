@@ -43,6 +43,8 @@ static char *rx_line_buffer = NULL;
 static size_t rx_line_buffer_pos = 0;
 
 static int uart_receive(uint16_t conn_handle, uint16_t attr_handle, struct ble_gatt_access_ctxt *ctxt, void *arg) {
+  ESP_LOGI(TAG, "Received BLE packet: %d", ctxt->om->om_len);
+
   for (int i = 0; i < ctxt->om->om_len; ++i) {
     const char c = ctxt->om->om_data[i];
     switch (c) {
@@ -50,7 +52,9 @@ static int uart_receive(uint16_t conn_handle, uint16_t attr_handle, struct ble_g
       break;
 
     case '\n':
-      rx_line_buffer[rx_line_buffer_pos] = '\0';
+      rx_line_buffer[rx_line_buffer_pos++] = '\0';
+      ESP_LOGI(TAG, "LINE: %s", rx_line_buffer);
+
       UBaseType_t res =
           xRingbufferSend(nordic_uart_rx_buf_handle, rx_line_buffer, rx_line_buffer_pos, pdMS_TO_TICKS(1000));
       if (res != pdTRUE) {
@@ -197,36 +201,38 @@ esp_err_t nordic_uart_start(void) {
     return ESP_FAIL;
   }
 
-  esp_err_r esp_err = ESP_OK;
-
-  esp_err = esp_nimble_hci_and_controller_init();
+  const esp_err_t esp_err = esp_nimble_hci_and_controller_init();
   if (esp_err != ESP_OK) {
+    ESP_LOGE(TAG, "esp_nimble_hci_and_controller_init failed with error: %d", esp_err);
     nordic_uart_stop();
     return esp_err;
   }
 
-  esp_err = nimble_port_init();
-  if (esp_err != ESP_OK) {
-    nordic_uart_stop();
-    return esp_err;
-  }
+  nimble_port_init();
 
   ble_svc_gap_device_name_set(CONFIG_NORDIC_UART_DEVICE_NAME);
   ble_svc_gap_init();
   ble_svc_gatt_init();
 
-  if (ble_gatts_count_cfg(gat_svcs) != 0) {
+  int ret;
+  ret = ble_gatts_count_cfg(gat_svcs);
+  if (ret != 0) {
+    ESP_LOGE(TAG, "ble_gatts_count_cfg failed with error: %d", ret);
     nordic_uart_stop();
     return ESP_FAIL;
   }
 
-  if (ble_gatts_add_svcs(gat_svcs) != 0) {
+  ret = ble_gatts_add_svcs(gat_svcs);
+  if (ret != 0) {
+    ESP_LOGE(TAG, "ble_gatts_count_cfg failed with error: %d", ret);
     nordic_uart_stop();
     return ESP_FAIL;
   }
 
   ble_hs_cfg.sync_cb = ble_app_on_sync;
   nimble_port_freertos_init(host_task);
+
+  ESP_LOGI(TAG, "< nordic_uart_start");
 
   return ESP_OK;
 }

@@ -40,6 +40,7 @@ export declare class BLESmartConfig {
     test_wifi_connection(): Promise<boolean>;
     set_wifi(ssid: string, passphrase: string): Promise<boolean>;
     set_awsiot(config: IoTConfig): Promise<boolean>;
+    check_awsiot(): Promise<boolean>;
     send_text(key: string, value: string): Promise<boolean>;
     send_text_multiline(key: string, value: string): Promise<boolean>;
 }

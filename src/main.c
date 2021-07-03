@@ -24,9 +24,8 @@ void command_DEBUG(int argc, const char *args[], int datac, const char *data[]);
 void command_SET_STR(int argc, const char *args[], int datac, const char *data[]);
 void command_SET_MULTI(int argc, const char *args[], int datac, const char *data[]);
 void command_GET_STR(int argc, const char *args[], int datac, const char *data[]);
-void command_CHECK_AWS(int argc, const char *args[], int datac, const char *data[]);
+void command_CHECK_AWSIOT(int argc, const char *args[], int datac, const char *data[]);
 void command_CHECK_WIFI(int argc, const char *args[], int datac, const char *data[]);
-void command_CHECK_AWS(int argc, const char *args[], int datac, const char *data[]);
 
 struct BLECommand {
   const char *name;
@@ -41,7 +40,7 @@ const struct BLECommand commands[] = {
     {.name = "SET_STR", .multiline = false, .func = command_SET_STR},
     {.name = "SET_MULTI", .multiline = true, .func = command_SET_MULTI},
     {.name = "CHECK_WIFI", .multiline = false, .func = command_CHECK_WIFI},
-    {.name = "CHECK_AWS", .multiline = false, .func = command_CHECK_AWS},
+    {.name = "CHECK_AWSIOT", .multiline = false, .func = command_CHECK_AWSIOT},
     {.name = "DEBUG", .multiline = true, .func = command_DEBUG},
 };
 
@@ -58,11 +57,15 @@ static void initialisze_wifi(void) {
 }
 
 static void uartIncomingTask(void *parameter) {
+  ESP_LOGI(TAG, "uartIncomingTask");
+
   for (;;) {
     size_t item_size;
     char *line = (char *)xRingbufferReceive(nordic_uart_rx_buf_handle, &item_size, portMAX_DELAY);
 
     if (line) {
+      ESP_LOGI(TAG, "LINE: %s", line);
+
       char *command_name;
       char *item = get_token(line, &command_name);
 
@@ -74,7 +77,6 @@ static void uartIncomingTask(void *parameter) {
           char *args[MAX_COMMAND_ARGC];
           int argc = 0;
           while (item && argc < MAX_COMMAND_ARGC) {
-            puts(item);
             item = get_token(item, &args[argc]);
             if (args[argc] == NULL)
               break;
@@ -89,12 +91,13 @@ static void uartIncomingTask(void *parameter) {
               size_t dataline_size;
               char *dataline = (char *)xRingbufferReceive(nordic_uart_rx_buf_handle, &dataline_size, portMAX_DELAY);
               size_t dataline_len = strlen(dataline);
-              if (dataline_len == 0)
+              ESP_LOGI(TAG, "ML: %d, %d", dataline_len, dataline_size);
+              if (dataline_size <= 1)
                 break;
               if (datac >= CONFIG_NORDIC_UART_MAX_LINE_LENGTH - 1) {
-                ESP_LOGF(TAG, "over lines");
+                ESP_LOGE(TAG, "over lines");
               } else {
-                data[datac] = malloc(dataline_len + 1);
+                data[datac] = malloc(dataline_size);
                 strcpy(data[datac++], dataline);
               }
               vRingbufferReturnItem(nordic_uart_rx_buf_handle, (void *)dataline);

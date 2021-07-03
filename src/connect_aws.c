@@ -61,7 +61,7 @@ const char *get_nvs_value(nvs_handle_t nvs_handle, const char *name) {
   return value;
 }
 
-esp_err_t connect_aws_with_nvs() {
+esp_err_t connect_awsiot_with_nvs() {
   size_t required_size;
 
   int32_t i = 0;
@@ -154,9 +154,9 @@ esp_err_t connect_aws_with_nvs() {
 
   ESP_LOGI(TAG, "loop...");
   while ((NETWORK_ATTEMPTING_RECONNECT == rc || NETWORK_RECONNECTED == rc || SUCCESS == rc)) {
-
     // Max time the yield function will wait for read messages
     rc = aws_iot_mqtt_yield(&client, 100);
+    ESP_LOGI(TAG, "loop...: %d", rc);
     if (NETWORK_ATTEMPTING_RECONNECT == rc) {
       // If the client is attempting to reconnect we will skip the rest of the loop.
       continue;

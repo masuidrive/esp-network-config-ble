@@ -105,9 +105,7 @@ export class BLESmartConfig {
     this.uart.clear();
     await this.uart.sendln("CHECK_WIFI");
     const result = await this.uart.readline();
-    console.log("test: " + result);
     await this.uart.waitBlank();
-    console.log("test done");
     return !!result.match(/^OK/);
   }
 
@@ -132,6 +130,13 @@ export class BLESmartConfig {
     await this.send_text_multiline("iot_priv", config.priv);
     await this.send_text("iot_client_id", config.client_id);
 
+    return true; // TODO
+  }
+
+  async check_awsiot(): Promise<boolean> {
+    this.uart.clear();
+    await this.uart.sendln("CHECK_AWSIOT");
+
     const result = await this.uart.readline();
     await this.uart.waitBlank();
     return !!result.match(/^OK/);
@@ -149,13 +154,11 @@ export class BLESmartConfig {
 
     const lines = value.replaceAll(/\r/g, "").replace(/\n+$/, "").split(/\n+/);
     for (const line of lines) {
-      console.log("L:" + line);
       await this.uart.sendln(line);
     }
 
     await this.uart.sendln("");
     const result = await this.uart.readline();
-    console.log("re:" + result);
 
     await this.uart.waitBlank();
     return !!result.match(/^OK/);

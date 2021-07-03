@@ -153,11 +153,9 @@ var BLESmartConfig = /** @class */ (function () {
                         return [4 /*yield*/, this.uart.readline()];
                     case 2:
                         result = _a.sent();
-                        console.log("test: " + result);
                         return [4 /*yield*/, this.uart.waitBlank()];
                     case 3:
                         _a.sent();
-                        console.log("test done");
                         return [2 /*return*/, !!result.match(/^OK/)];
                 }
             });
@@ -186,7 +184,6 @@ var BLESmartConfig = /** @class */ (function () {
     };
     BLESmartConfig.prototype.set_awsiot = function (config) {
         return __awaiter(this, void 0, void 0, function () {
-            var result;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -212,11 +209,26 @@ var BLESmartConfig = /** @class */ (function () {
                         return [4 /*yield*/, this.send_text("iot_client_id", config.client_id)];
                     case 7:
                         _a.sent();
+                        return [2 /*return*/, true]; // TODO
+                }
+            });
+        });
+    };
+    BLESmartConfig.prototype.check_awsiot = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            var result;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        this.uart.clear();
+                        return [4 /*yield*/, this.uart.sendln("CHECK_AWSIOT")];
+                    case 1:
+                        _a.sent();
                         return [4 /*yield*/, this.uart.readline()];
-                    case 8:
+                    case 2:
                         result = _a.sent();
                         return [4 /*yield*/, this.uart.waitBlank()];
-                    case 9:
+                    case 3:
                         _a.sent();
                         return [2 /*return*/, !!result.match(/^OK/)];
                 }
@@ -256,7 +268,6 @@ var BLESmartConfig = /** @class */ (function () {
                     case 2:
                         if (!(_i < lines_1.length)) return [3 /*break*/, 5];
                         line = lines_1[_i];
-                        console.log("L:" + line);
                         return [4 /*yield*/, this.uart.sendln(line)];
                     case 3:
                         _a.sent();
@@ -270,7 +281,6 @@ var BLESmartConfig = /** @class */ (function () {
                         return [4 /*yield*/, this.uart.readline()];
                     case 7:
                         result = _a.sent();
-                        console.log("re:" + result);
                         return [4 /*yield*/, this.uart.waitBlank()];
                     case 8:
                         _a.sent();

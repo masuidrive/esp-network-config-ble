@@ -6,9 +6,9 @@
 #include "esp_log.h"
 #include "freertos/FreeRTOS.h"
 
-static const char *TAG = "CHECK AWS";
+static const char *TAG = "CHECK AWSIOT";
 
-void command_CHECK_AWS(int argc, const char *args[], int datac, const char *data[]) {
+void command_CHECK_AWSIOT(int argc, const char *args[], int datac, const char *data[]) {
   if (connect_wifi_with_nvs() != ESP_OK) {
     nordic_uart_sendln("ERROR: Failed to connect");
     nordic_uart_sendln("");
@@ -16,7 +16,7 @@ void command_CHECK_AWS(int argc, const char *args[], int datac, const char *data
     return;
   }
   ESP_LOGI(TAG, "Successed to connect");
-  connect_aws_with_nvs();
+  connect_awsiot_with_nvs();
 
   nordic_uart_sendln("OK");
   nordic_uart_sendln("");
