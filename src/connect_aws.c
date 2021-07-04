@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "connect_aws.h"
+
 #include "esp_event.h"
 #include "esp_log.h"
 #include "esp_netif.h"
@@ -24,6 +26,7 @@ void iot_subscribe_callback_handler(AWS_IoT_Client *pClient, char *topicName, ui
                                     IoT_Publish_Message_Params *params, void *pData) {
   ESP_LOGI(TAG, "Subscribe callback");
   ESP_LOGI(TAG, "%.*s\t%.*s", topicNameLen, topicName, (int)params->payloadLen, (char *)params->payload);
+  printf("%.*s\t%.*s", topicNameLen, topicName, (int)params->payloadLen, (char *)params->payload);
 }
 
 void disconnectCallbackHandler(AWS_IoT_Client *pClient, void *data) {
@@ -61,7 +64,10 @@ const char *get_nvs_value(nvs_handle_t nvs_handle, const char *name) {
   return value;
 }
 
-esp_err_t connect_awsiot_with_nvs(AWS_IoT_Client *client) {
+static AWS_IoT_Client client;
+static char topic[256];
+
+esp_err_t awsiot_connect_with_nvs() {
   size_t required_size;
 
   int32_t i = 0;
@@ -73,10 +79,11 @@ esp_err_t connect_awsiot_with_nvs(AWS_IoT_Client *client) {
 
   ESP_LOGI(TAG, "AWS IoT SDK Version %d.%d.%d-%s", VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH, VERSION_TAG);
 
-  mqttInitParams.enableAutoReconnect = false; // We enable this later below
+  mqttInitParams.enableAutoReconnect = false; // set true later
 
   nvs_handle_t nvs_handle;
   ESP_ERROR_CHECK(nvs_open("bleconfig", NVS_READWRITE, &nvs_handle));
+  // TODO: これらのメモリをどこで解放しよう？
   mqttInitParams.pHostURL = get_nvs_value(nvs_handle, "mqtt_host");
   mqttInitParams.port = atoi(get_nvs_value(nvs_handle, "mqtt_port"));
   mqttInitParams.pRootCALocation = get_nvs_value(nvs_handle, "iot_root_ca");
@@ -86,6 +93,9 @@ esp_err_t connect_awsiot_with_nvs(AWS_IoT_Client *client) {
   connectParams.pClientID = get_nvs_value(nvs_handle, "iot_client_id");
   connectParams.clientIDLen = (uint16_t)strlen(connectParams.pClientID);
 
+  char *_topic = get_nvs_value(nvs_handle, "mqtt_topic");
+  strncpy(topic, _topic, sizeof(topic));
+
   nvs_close(nvs_handle);
 
   mqttInitParams.mqttCommandTimeout_ms = 20000;
@@ -94,7 +104,7 @@ esp_err_t connect_awsiot_with_nvs(AWS_IoT_Client *client) {
   mqttInitParams.disconnectHandler = disconnectCallbackHandler;
   mqttInitParams.disconnectHandlerData = NULL;
 
-  rc = aws_iot_mqtt_init(client, &mqttInitParams);
+  rc = aws_iot_mqtt_init(&client, &mqttInitParams);
   if (SUCCESS != rc) {
     ESP_LOGE(TAG, "aws_iot_mqtt_init returned error : %d ", rc);
     abort();
@@ -110,15 +120,15 @@ esp_err_t connect_awsiot_with_nvs(AWS_IoT_Client *client) {
 
   int retry_count = 0;
   do {
-    rc = aws_iot_mqtt_connect(client, &connectParams);
+    rc = aws_iot_mqtt_connect(&client, &connectParams);
     if (SUCCESS != rc) {
       ESP_LOGE(TAG, "Error(%d) connecting to %s:%d", rc, mqttInitParams.pHostURL, mqttInitParams.port);
       vTaskDelay(1000 / portTICK_RATE_MS);
     }
   } while (SUCCESS != rc && retry_count++ < RETRY_COUNT);
-  rc = aws_iot_mqtt_autoreconnect_set_status(client, true);
+  rc = aws_iot_mqtt_autoreconnect_set_status(&client, true);
   if (SUCCESS != rc) {
-    ESP_LOGE(TAG, "Unable to ceconnect - %d", rc);
+    ESP_LOGE(TAG, "Unable to connect - %d", rc);
     return ESP_FAIL;
   }
 
@@ -127,74 +137,107 @@ esp_err_t connect_awsiot_with_nvs(AWS_IoT_Client *client) {
    *  #AWS_IOT_MQTT_MIN_RECONNECT_WAIT_INTERVAL
    *  #AWS_IOT_MQTT_MAX_RECONNECT_WAIT_INTERVAL
    */
-  rc = aws_iot_mqtt_autoreconnect_set_status(client, true);
+  rc = aws_iot_mqtt_autoreconnect_set_status(&client, true);
   if (SUCCESS != rc) {
     ESP_LOGE(TAG, "Unable to set Auto Reconnect to true - %d", rc);
     return ESP_FAIL;
   }
 
-  // const char *TOPIC = "test_topic/esp32";
-  // const char *TOPIC = "$aws/things/talkie-development-1/shadow";
-  const char *TOPIC = "demo";
-  const int TOPIC_LEN = strlen(TOPIC);
+  const int topic_len = strlen(topic);
 
   ESP_LOGI(TAG, "Subscribing...");
-  rc = aws_iot_mqtt_subscribe(client, TOPIC, TOPIC_LEN, QOS0, iot_subscribe_callback_handler, NULL);
+  rc = aws_iot_mqtt_subscribe(&client, topic, topic_len, QOS0, iot_subscribe_callback_handler, NULL);
   if (SUCCESS != rc) {
     ESP_LOGE(TAG, "Error subscribing : %d ", rc);
     return ESP_FAIL;
   }
 
-  rc = aws_iot_mqtt_yield(client, 100);
+  rc = aws_iot_mqtt_yield(&client, 100);
   if (SUCCESS != rc) {
     ESP_LOGE(TAG, "Error subscribing : %d ", rc);
     return ESP_FAIL;
   }
+
+  /* begin */
+  /*
+  IoT_Publish_Message_Params paramsQOS0;
+  IoT_Publish_Message_Params paramsQOS1;
+  char cPayload[100];
+  sprintf(cPayload, "{\"%s\":%d}", "hello from ESP32(QOS0) ", i++);
+  paramsQOS0.payloadLen = strlen(cPayload);
+  paramsQOS0.qos = QOS0;
+  paramsQOS0.payload = (void *)cPayload;
+  paramsQOS0.isRetained = 0;
+
+  rc = aws_iot_mqtt_publish(&client, topic, topic_len, &paramsQOS0);
+
+  sprintf(cPayload, "{\"%s\":%d}", "hello from ESP32 (QOS1)", i++);
+  paramsQOS1.payloadLen = strlen(cPayload);
+  paramsQOS1.qos = QOS1;
+  paramsQOS1.payload = (void *)cPayload;
+  paramsQOS1.isRetained = 0;
+  rc = aws_iot_mqtt_publish(&client, topic, topic_len, &paramsQOS1);
+  if (rc == MQTT_REQUEST_TIMEOUT_ERROR) {
+    ESP_LOGW(TAG, "QOS1 publish ack not received.");
+    rc = SUCCESS;
+  }
+  */
+  /* end */
+  ESP_LOGI(TAG, ">> waiting test");
+  BaseType_t xReturned;
+  TaskHandle_t xHandle = NULL;
+
+  /* Create the task, storing the handle. */
+  xReturned = xTaskCreate(awsiot_loop_task, /* Function that implements the task. */
+                          "NAME",           /* Text name for the task. */
+                          4096,             /* Stack size in words, not bytes. */
+                          (void *)1,        /* Parameter passed into the task. */
+                          tskIDLE_PRIORITY, /* Priority at which the task is created. */
+                          &xHandle);        /* Used to pass out the created task's handle. */
+
+  if (xReturned == pdPASS) {
+    /* The task was created.  Use the task's handle to delete the task. */
+    // vTaskDelete(xHandle);
+    // ESP_LOGI(TAG, "failed waiting");
+  }
+  vTaskDelay((1000 / portTICK_RATE_MS) * 10);
+  vTaskDelete(xHandle);
+  ESP_LOGI(TAG, "<< waiting");
 
   return ESP_OK;
 }
 
-esp_err_t loop_awsiot(AWS_IoT_Client *client) {
-  ESP_LOGI(TAG, "loop...");
-  IoT_Error_t rc = SUCCESS;
+esp_err_t awsiot_publish(const char *message) {
+  IoT_Publish_Message_Params paramsQOS1;
+  paramsQOS1.payloadLen = strlen(message);
+  paramsQOS1.qos = QOS1;
+  paramsQOS1.payload = (void *)message;
+  paramsQOS1.isRetained = 0;
+  int rc = aws_iot_mqtt_publish(&client, topic, strlen(topic), &paramsQOS1);
+  if (rc == MQTT_REQUEST_TIMEOUT_ERROR) {
+    ESP_LOGW(TAG, "QOS1 publish ack not received.");
+    return ESP_FAIL;
+  }
+  return ESP_OK;
+}
 
+void awsiot_loop_task(void *pvParameters) {
+  ESP_LOGI(TAG, "Start loop.");
+  int rc = SUCCESS;
   while ((NETWORK_ATTEMPTING_RECONNECT == rc || NETWORK_RECONNECTED == rc || SUCCESS == rc)) {
     // Max time the yield function will wait for read messages
-    rc = aws_iot_mqtt_yield(client, 100);
-    ESP_LOGI(TAG, "loop...: %d", rc);
+    rc = aws_iot_mqtt_yield(&client, 100);
     if (NETWORK_ATTEMPTING_RECONNECT == rc) {
       // If the client is attempting to reconnect we will skip the rest of the loop.
       continue;
     }
-    /*
-    ESP_LOGI(TAG, "Stack remaining for task '%s' is %d bytes", pcTaskGetTaskName(NULL),
-    uxTaskGetStackHighWaterMark(NULL)); vTaskDelay(1000 / portTICK_RATE_MS); sprintf(cPayload, "%s : %d ", "hello from
-    ESP32 (QOS0)", i++); paramsQOS0.payloadLen = strlen(cPayload); rc = aws_iot_mqtt_publish(&client, TOPIC, TOPIC_LEN,
-    &paramsQOS0);
-
-    sprintf(cPayload, "%s : %d ", "hello from ESP32 (QOS1)", i++);
-    paramsQOS1.payloadLen = strlen(cPayload);
-    rc = aws_iot_mqtt_publish(&client, TOPIC, TOPIC_LEN, &paramsQOS1);
-    if (rc == MQTT_REQUEST_TIMEOUT_ERROR)
-    {
-        ESP_LOGW(TAG, "QOS1 publish ack not received.");
-        rc = SUCCESS;
-    }
-*/
   }
-
-  ESP_LOGE(TAG, "An error occurred in the main loop.");
-  abort();
 }
 
-esp_err_t disconnect_awsiot(AWS_IoT_Client *client) {
-  if (!client)
+esp_err_t awsiot_disconnect() {
+  if (aws_iot_mqtt_disconnect(&client) == SUCCESS) {
     return ESP_OK;
-
-  if (aws_iot_mqtt_disconnect(client) == client) {
-    client = NULL;
-    return ESP_OK;
+  } else {
+    return ESP_FAIL;
   }
-
-  return ESP_FAIL;
 }
