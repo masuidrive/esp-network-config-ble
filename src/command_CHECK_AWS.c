@@ -1,3 +1,4 @@
+#include "aws_iot_mqtt_client_interface.h"
 #include "connect_aws.h"
 #include "connect_wifi.h"
 #include "esp-nimble-nordic-uart.h"
@@ -16,8 +17,13 @@ void command_CHECK_AWSIOT(int argc, const char *args[], int datac, const char *d
     return;
   }
   ESP_LOGI(TAG, "Successed to connect");
-  connect_awsiot_with_nvs();
-
-  nordic_uart_sendln("OK");
-  nordic_uart_sendln("");
+  AWS_IoT_Client client;
+  if (connect_awsiot_with_nvs(&client) == ESP_OK) {
+    nordic_uart_sendln("OK");
+    nordic_uart_sendln("");
+  } else {
+    nordic_uart_sendln("FAILD");
+    nordic_uart_sendln("");
+  }
+  disconnect_awsiot(&client);
 }

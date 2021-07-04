@@ -61,14 +61,13 @@ const char *get_nvs_value(nvs_handle_t nvs_handle, const char *name) {
   return value;
 }
 
-esp_err_t connect_awsiot_with_nvs() {
+esp_err_t connect_awsiot_with_nvs(AWS_IoT_Client *client) {
   size_t required_size;
 
   int32_t i = 0;
 
   IoT_Error_t rc = FAILURE;
 
-  AWS_IoT_Client client;
   IoT_Client_Init_Params mqttInitParams = iotClientInitParamsDefault;
   IoT_Client_Connect_Params connectParams = iotClientConnectParamsDefault;
 
@@ -95,7 +94,7 @@ esp_err_t connect_awsiot_with_nvs() {
   mqttInitParams.disconnectHandler = disconnectCallbackHandler;
   mqttInitParams.disconnectHandlerData = NULL;
 
-  rc = aws_iot_mqtt_init(&client, &mqttInitParams);
+  rc = aws_iot_mqtt_init(client, &mqttInitParams);
   if (SUCCESS != rc) {
     ESP_LOGE(TAG, "aws_iot_mqtt_init returned error : %d ", rc);
     abort();
@@ -111,13 +110,13 @@ esp_err_t connect_awsiot_with_nvs() {
 
   int retry_count = 0;
   do {
-    rc = aws_iot_mqtt_connect(&client, &connectParams);
+    rc = aws_iot_mqtt_connect(client, &connectParams);
     if (SUCCESS != rc) {
       ESP_LOGE(TAG, "Error(%d) connecting to %s:%d", rc, mqttInitParams.pHostURL, mqttInitParams.port);
       vTaskDelay(1000 / portTICK_RATE_MS);
     }
   } while (SUCCESS != rc && retry_count++ < RETRY_COUNT);
-  rc = aws_iot_mqtt_autoreconnect_set_status(&client, true);
+  rc = aws_iot_mqtt_autoreconnect_set_status(client, true);
   if (SUCCESS != rc) {
     ESP_LOGE(TAG, "Unable to ceconnect - %d", rc);
     return ESP_FAIL;
@@ -128,7 +127,7 @@ esp_err_t connect_awsiot_with_nvs() {
    *  #AWS_IOT_MQTT_MIN_RECONNECT_WAIT_INTERVAL
    *  #AWS_IOT_MQTT_MAX_RECONNECT_WAIT_INTERVAL
    */
-  rc = aws_iot_mqtt_autoreconnect_set_status(&client, true);
+  rc = aws_iot_mqtt_autoreconnect_set_status(client, true);
   if (SUCCESS != rc) {
     ESP_LOGE(TAG, "Unable to set Auto Reconnect to true - %d", rc);
     return ESP_FAIL;
@@ -140,22 +139,28 @@ esp_err_t connect_awsiot_with_nvs() {
   const int TOPIC_LEN = strlen(TOPIC);
 
   ESP_LOGI(TAG, "Subscribing...");
-  rc = aws_iot_mqtt_subscribe(&client, TOPIC, TOPIC_LEN, QOS0, iot_subscribe_callback_handler, NULL);
+  rc = aws_iot_mqtt_subscribe(client, TOPIC, TOPIC_LEN, QOS0, iot_subscribe_callback_handler, NULL);
   if (SUCCESS != rc) {
     ESP_LOGE(TAG, "Error subscribing : %d ", rc);
     return ESP_FAIL;
   }
 
-  rc = aws_iot_mqtt_yield(&client, 100);
+  rc = aws_iot_mqtt_yield(client, 100);
   if (SUCCESS != rc) {
     ESP_LOGE(TAG, "Error subscribing : %d ", rc);
     return ESP_FAIL;
   }
 
+  return ESP_OK;
+}
+
+esp_err_t loop_awsiot(AWS_IoT_Client *client) {
   ESP_LOGI(TAG, "loop...");
+  IoT_Error_t rc = SUCCESS;
+
   while ((NETWORK_ATTEMPTING_RECONNECT == rc || NETWORK_RECONNECTED == rc || SUCCESS == rc)) {
     // Max time the yield function will wait for read messages
-    rc = aws_iot_mqtt_yield(&client, 100);
+    rc = aws_iot_mqtt_yield(client, 100);
     ESP_LOGI(TAG, "loop...: %d", rc);
     if (NETWORK_ATTEMPTING_RECONNECT == rc) {
       // If the client is attempting to reconnect we will skip the rest of the loop.
@@ -180,4 +185,16 @@ esp_err_t connect_awsiot_with_nvs() {
 
   ESP_LOGE(TAG, "An error occurred in the main loop.");
   abort();
+}
+
+esp_err_t disconnect_awsiot(AWS_IoT_Client *client) {
+  if (!client)
+    return ESP_OK;
+
+  if (aws_iot_mqtt_disconnect(client) == client) {
+    client = NULL;
+    return ESP_OK;
+  }
+
+  return ESP_FAIL;
 }
