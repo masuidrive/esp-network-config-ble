@@ -4,7 +4,6 @@
 #include "esp-nimble-nordic-uart.h"
 #include "esp-smartconfig-ble.h"
 #include "esp_log.h"
-#include "led_strip.h"
 
 void command_DEBUG(int argc, const char *args[], int datac, const char *data[]);
 

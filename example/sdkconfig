@@ -1317,12 +1317,6 @@ CONFIG_AWS_IOT_SHADOW_MAX_SIZE_OF_THING_NAME=20
 # Nimble Nordic UART Configuration
 #
 # end of Nimble Nordic UART Configuration
-
-#
-# LED strip
-#
-CONFIG_LED_STRIP_FLUSH_TIMEOUT=1000
-# end of LED strip
 # end of Component config
 
 #
