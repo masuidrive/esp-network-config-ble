@@ -1,12 +1,40 @@
 #include <stdint.h>
 #include <stdio.h>
 
+#include "esp-nimble-nordic-uart.h"
 #include "esp-smartconfig-ble.h"
 #include "esp_log.h"
 #include "led_strip.h"
 
-// void app_main(void) { smart_config_ble_start(); }
+void command_DEBUG(int argc, const char *args[], int datac, const char *data[]);
 
+static const struct BLECommand BLECommandDEBUG = {.name = "DEBUG", .multiline = true, .func = command_DEBUG};
+
+struct BLECommand *extend_commands[] = {
+    &BLECommandDEBUG,
+    NULL,
+};
+
+void app_main(void) { smart_config_ble_start(extend_commands); }
+
+void command_DEBUG(int argc, const char *args[], int datac, const char *data[]) {
+  char buf[CONFIG_NORDIC_UART_MAX_LINE_LENGTH];
+  sprintf(buf, "argc=%d, datac=%d", argc, datac);
+  puts(buf);
+  nordic_uart_sendln(buf);
+
+  for (int i = 0; i < argc; ++i) {
+    nordic_uart_sendln(args[i]);
+  }
+  nordic_uart_sendln("----");
+
+  for (int i = 0; i < datac; ++i) {
+    nordic_uart_sendln(data[i]);
+  }
+  nordic_uart_sendln("");
+}
+
+/*
 // Define the type of LED strip, I have the WS2812b, which has the same timings as the WS2812
 #define LED_TYPE LED_STRIP_WS2812
 
@@ -49,3 +77,4 @@ void app_main() {
     vTaskDelay(((speed / LED_STRIP_LEN) / portTICK_PERIOD_MS));
   }
 }
+*/

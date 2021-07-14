@@ -16,7 +16,6 @@ idf_component_register(
     "src/connect_aws.c"
     "src/command_LIST_SSID.c"
     "src/command_SET_WIFI.c"
-    "src/command_DEBUG.c"
     "src/command_GET.c"
     "src/command_SET.c"
     "src/command_CHECK_AWS.c"
