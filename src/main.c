@@ -102,8 +102,7 @@ static void uartIncomingTask(void *parameter) {
 
       if (command_name) {
         if (original_commands) {
-          struct BLECommand **commands = original_commands;
-          while (*commands) {
+          for (struct BLECommand **commands = original_commands; *commands; ++commands) {
             if (strcasecmp(command_name, (*commands)->name) == 0) {
               run_command(*commands, item);
               break;
