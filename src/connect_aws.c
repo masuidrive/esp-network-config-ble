@@ -190,7 +190,7 @@ esp_err_t awsiot_connect_with_nvs() {
   /* Create the task, storing the handle. */
   xReturned = xTaskCreate(awsiot_loop_task, /* Function that implements the task. */
                           "NAME",           /* Text name for the task. */
-                          4096,             /* Stack size in words, not bytes. */
+                          8192,             /* Stack size in words, not bytes. */
                           (void *)1,        /* Parameter passed into the task. */
                           tskIDLE_PRIORITY, /* Priority at which the task is created. */
                           &xHandle);        /* Used to pass out the created task's handle. */
@@ -200,8 +200,8 @@ esp_err_t awsiot_connect_with_nvs() {
     // vTaskDelete(xHandle);
     // ESP_LOGI(TAG, "failed waiting");
   }
-  vTaskDelay((1000 / portTICK_RATE_MS) * 10);
-  vTaskDelete(xHandle);
+  // vTaskDelay((1000 / portTICK_RATE_MS) * 10);
+  // vTaskDelete(xHandle);
   ESP_LOGI(TAG, "<< waiting");
 
   return ESP_OK;
@@ -222,7 +222,7 @@ esp_err_t awsiot_publish(const char *message) {
 }
 
 void awsiot_loop_task(void *pvParameters) {
-  ESP_LOGI(TAG, "Start loop.");
+  ESP_LOGI(TAG, ">> awsiot_loop_task");
   int rc = SUCCESS;
   while ((NETWORK_ATTEMPTING_RECONNECT == rc || NETWORK_RECONNECTED == rc || SUCCESS == rc)) {
     // Max time the yield function will wait for read messages
@@ -232,6 +232,7 @@ void awsiot_loop_task(void *pvParameters) {
       continue;
     }
   }
+  ESP_LOGI(TAG, "awsiot_loop_task> END");
 }
 
 esp_err_t awsiot_disconnect() {
