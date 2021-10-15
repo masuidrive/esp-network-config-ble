@@ -58,7 +58,10 @@ uint16_t iot_host_port;
 
 const char *get_nvs_value(nvs_handle_t nvs_handle, const char *name) {
   size_t required_size = 0;
-  ESP_ERROR_CHECK(nvs_get_str(nvs_handle, name, NULL, &required_size));
+  esp_err_t ret = nvs_get_str(nvs_handle, name, NULL, &required_size);
+  if (ret != ESP_OK) {
+    return NULL;
+  }
   char *value = malloc(required_size);
   ESP_ERROR_CHECK(nvs_get_str(nvs_handle, name, value, &required_size));
   return value;
