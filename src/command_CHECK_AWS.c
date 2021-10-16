@@ -17,11 +17,11 @@ void command_CHECK_AWSIOT(int argc, const char *args[], int datac, const char *d
     return;
   }
   ESP_LOGI(TAG, "Successed to connect");
-  if (awsiot_connect_with_nvs() == ESP_OK) {
+  if (awsiot_connect_with_nvs(NULL) == ESP_OK) {
     nordic_uart_sendln("OK");
     nordic_uart_sendln("");
   } else {
-    nordic_uart_sendln("FAILD");
+    nordic_uart_sendln("FAILED");
     nordic_uart_sendln("");
   }
   awsiot_disconnect();

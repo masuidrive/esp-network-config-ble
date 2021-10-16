@@ -21,12 +21,13 @@
 #define RETRY_COUNT 5
 
 static const char *TAG = "CONNECT AWS";
+static awsiot_mqtt_receiver_callback mqtt_receiver = NULL;
 
 void iot_subscribe_callback_handler(AWS_IoT_Client *pClient, char *topicName, uint16_t topicNameLen,
                                     IoT_Publish_Message_Params *params, void *pData) {
-  ESP_LOGI(TAG, "Subscribe callback");
   ESP_LOGI(TAG, "%.*s\t%.*s", topicNameLen, topicName, (int)params->payloadLen, (char *)params->payload);
-  printf("%.*s\t%.*s", topicNameLen, topicName, (int)params->payloadLen, (char *)params->payload);
+  if (mqtt_receiver)
+    mqtt_receiver(topicName, (char *)params->payload);
 }
 
 void disconnectCallbackHandler(AWS_IoT_Client *pClient, void *data) {
@@ -70,7 +71,8 @@ const char *get_nvs_value(nvs_handle_t nvs_handle, const char *name) {
 static AWS_IoT_Client client;
 static char topic[256];
 
-esp_err_t awsiot_connect_with_nvs() {
+esp_err_t awsiot_connect_with_nvs(awsiot_mqtt_receiver_callback callback) {
+  mqtt_receiver = callback;
   size_t required_size;
 
   int32_t i = 0;
