@@ -121,8 +121,10 @@ esp_err_t wifi_connect_with_nvs(int max_retry, wifi_status_callback status_callb
 
   size_t ssid_size = MAX_SSID_LEN, passphrase_size = MAX_PASSPHRASE_LEN;
   char ssid[MAX_SSID_LEN], password[MAX_PASSPHRASE_LEN];
+
   ESP_ERROR_CHECK(nvs_get_str(nvs_handle, "ssid", ssid, &ssid_size));
   ESP_ERROR_CHECK(nvs_get_str(nvs_handle, "password", password, &passphrase_size));
+
   nvs_close(nvs_handle);
 
   return wifi_connect(ssid, password, max_retry, status_callback);
@@ -137,5 +139,10 @@ esp_err_t wifi_init() {
   ESP_ERROR_CHECK(
       esp_event_handler_instance_register(IP_EVENT, ESP_EVENT_ANY_ID, &wifi_event_handler, NULL, &instance_got_ip));
 
+  return ESP_OK;
+}
+
+esp_err_t wifi_disconnect() {
+  esp_wifi_stop();
   return ESP_OK;
 }
