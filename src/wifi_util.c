@@ -17,7 +17,7 @@ static const char *TAG = "WIFI";
 #define WIFI_CONNECTED_BIT BIT0
 #define WIFI_FAILED_BIT BIT1
 
-static EventGroupHandle_t s_wifi_event_group;
+static EventGroupHandle_t s_wifi_event_group = NULL;
 static esp_event_handler_instance_t instance_any_id;
 static esp_event_handler_instance_t instance_got_ip;
 static wifi_status_callback status_callback = NULL;
@@ -54,7 +54,7 @@ static void wifi_event_handler(void *arg, esp_event_base_t event_base, int32_t e
   }
 }
 
-static void wifi_init(const char *ssid, const char *password) {
+static void wifi_setup(const char *ssid, const char *password) {
   wifi_config_t wifi_config = {
       .sta =
           {
@@ -69,11 +69,6 @@ static void wifi_init(const char *ssid, const char *password) {
   strlcpy((char *)wifi_config.sta.ssid, ssid, sizeof(wifi_config.sta.ssid));
   strlcpy((char *)wifi_config.sta.password, password, sizeof(wifi_config.sta.password));
 
-  ESP_ERROR_CHECK(
-      esp_event_handler_instance_register(WIFI_EVENT, ESP_EVENT_ANY_ID, &wifi_event_handler, NULL, &instance_any_id));
-  ESP_ERROR_CHECK(
-      esp_event_handler_instance_register(IP_EVENT, ESP_EVENT_ANY_ID, &wifi_event_handler, NULL, &instance_got_ip));
-
   wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
   ESP_ERROR_CHECK(esp_wifi_init(&cfg));
   ESP_ERROR_CHECK(esp_wifi_set_storage(WIFI_STORAGE_RAM));
@@ -83,7 +78,7 @@ static void wifi_init(const char *ssid, const char *password) {
   ESP_ERROR_CHECK(esp_wifi_start());
 }
 
-esp_err_t wifi_connect(const char *ssid, const char *password, int max_retry, wifi_status_callback status_callback) {
+esp_err_t wifi_connect(const char *ssid, const char *password, int _max_retry, wifi_status_callback _status_callback) {
   max_retry = _max_retry;
   status_callback = _status_callback;
   s_retry_num = 0;
@@ -97,7 +92,7 @@ esp_err_t wifi_connect(const char *ssid, const char *password, int max_retry, wi
   s_wifi_event_group = xEventGroupCreate();
 
   // init wifi config
-  wifi_init(ssid, password);
+  wifi_setup(ssid, password);
 
   // wait wifi_event_handler task
   EventBits_t bits =
@@ -107,10 +102,10 @@ esp_err_t wifi_connect(const char *ssid, const char *password, int max_retry, wi
   s_wifi_event_group = NULL;
 
   if (bits & WIFI_CONNECTED_BIT) {
-    ESP_LOGI(TAG, "connected to ap SSID: %s", wifi_config.sta.ssid);
+    ESP_LOGI(TAG, "connected to ap SSID: %s", ssid);
     return ESP_OK;
   } else if (bits & WIFI_FAILED_BIT) {
-    ESP_LOGI(TAG, "Failed to connect to SSID: %s", wifi_config.sta.ssid);
+    ESP_LOGI(TAG, "Failed to connect to SSID: %s", ssid);
     esp_wifi_stop();
     return ESP_FAIL;
   } else {
@@ -131,4 +126,16 @@ esp_err_t wifi_connect_with_nvs(int max_retry, wifi_status_callback status_callb
   nvs_close(nvs_handle);
 
   return wifi_connect(ssid, password, max_retry, status_callback);
+}
+
+esp_err_t wifi_init() {
+  ESP_ERROR_CHECK(esp_netif_init());
+  esp_netif_create_default_wifi_sta();
+
+  ESP_ERROR_CHECK(
+      esp_event_handler_instance_register(WIFI_EVENT, ESP_EVENT_ANY_ID, &wifi_event_handler, NULL, &instance_any_id));
+  ESP_ERROR_CHECK(
+      esp_event_handler_instance_register(IP_EVENT, ESP_EVENT_ANY_ID, &wifi_event_handler, NULL, &instance_got_ip));
+
+  return ESP_OK;
 }
