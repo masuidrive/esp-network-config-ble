@@ -2,9 +2,9 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "connect_wifi.h"
 #include "esp-nimble-nordic-uart.h"
 #include "esp-smartconfig-ble.h"
+#include "wifi_util.h"
 
 #include "esp_event.h"
 #include "esp_log.h"
@@ -24,7 +24,7 @@ void command_SET_WIFI(int argc, const char *args[], int datac, const char *data[
     return;
   }
 
-  if (connect_wifi(args[0], args[1], NULL) == ESP_OK) {
+  if (wifi_connect(3, args[0], args[1], NULL) == ESP_OK) {
     // save wifi config
     nvs_handle_t nvs_handle;
     ESP_ERROR_CHECK(nvs_open("wifi", NVS_READWRITE, &nvs_handle));

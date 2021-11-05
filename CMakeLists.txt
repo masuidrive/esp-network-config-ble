@@ -12,8 +12,8 @@ idf_component_register(
   SRCS
     "src/main.c"
     "src/tokenizer.c"
-    "src/connect_wifi.c"
-    "src/connect_aws.c"
+    "src/wifi_util.c"
+    "src/aws_util.c"
     "src/command_LIST_SSID.c"
     "src/command_SET_WIFI.c"
     "src/command_GET.c"

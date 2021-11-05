@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "connect_aws.h"
+#include "aws_util.h"
 
 #include "esp_event.h"
 #include "esp_log.h"
@@ -123,7 +123,6 @@ esp_err_t awsiot_connect_with_nvs(awsiot_mqtt_receiver_callback message_callback
   connectParams.keepAliveIntervalInSec = 10;
   connectParams.isCleanSession = true;
   connectParams.MQTTVersion = MQTT_3_1_1;
-  /* Client ID is set in the menuconfig of the example */
   connectParams.isWillMsgPresent = false;
 
   ESP_LOGI(TAG, "Connecting to AWS...");
@@ -168,31 +167,6 @@ esp_err_t awsiot_connect_with_nvs(awsiot_mqtt_receiver_callback message_callback
     return ESP_FAIL;
   }
 
-  /* begin */
-  /*
-  IoT_Publish_Message_Params paramsQOS0;
-  IoT_Publish_Message_Params paramsQOS1;
-  char cPayload[100];
-  sprintf(cPayload, "{\"%s\":%d}", "hello from ESP32(QOS0) ", i++);
-  paramsQOS0.payloadLen = strlen(cPayload);
-  paramsQOS0.qos = QOS0;
-  paramsQOS0.payload = (void *)cPayload;
-  paramsQOS0.isRetained = 0;
-
-  rc = aws_iot_mqtt_publish(&client, topic, topic_len, &paramsQOS0);
-
-  sprintf(cPayload, "{\"%s\":%d}", "hello from ESP32 (QOS1)", i++);
-  paramsQOS1.payloadLen = strlen(cPayload);
-  paramsQOS1.qos = QOS1;
-  paramsQOS1.payload = (void *)cPayload;
-  paramsQOS1.isRetained = 0;
-  rc = aws_iot_mqtt_publish(&client, topic, topic_len, &paramsQOS1);
-  if (rc == MQTT_REQUEST_TIMEOUT_ERROR) {
-    ESP_LOGW(TAG, "QOS1 publish ack not received.");
-    rc = SUCCESS;
-  }
-  */
-  /* end */
   ESP_LOGI(TAG, ">> waiting test");
   BaseType_t xReturned;
   TaskHandle_t xHandle = NULL;
