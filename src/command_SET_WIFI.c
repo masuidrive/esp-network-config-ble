@@ -24,7 +24,7 @@ void command_SET_WIFI(int argc, const char *args[], int datac, const char *data[
     return;
   }
 
-  if (connect_wifi(args[0], args[1]) == ESP_OK) {
+  if (connect_wifi(args[0], args[1], NULL) == ESP_OK) {
     // save wifi config
     nvs_handle_t nvs_handle;
     ESP_ERROR_CHECK(nvs_open("wifi", NVS_READWRITE, &nvs_handle));

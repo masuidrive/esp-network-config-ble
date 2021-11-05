@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "connect_wifi.h"
 #include "esp_event.h"
 #include "esp_log.h"
 #include "esp_netif.h"
@@ -23,6 +24,7 @@ static const char *TAG = "CONNECT WIFI";
 static EventGroupHandle_t s_wifi_event_group;
 static esp_event_handler_instance_t instance_any_id;
 static esp_event_handler_instance_t instance_got_ip;
+static wifi_status_callback status_callback = NULL;
 
 static void wifi_event_handler(void *arg, esp_event_base_t event_base, int32_t event_id, void *event_data) {
   static int s_retry_num = 0;
@@ -35,6 +37,8 @@ static void wifi_event_handler(void *arg, esp_event_base_t event_base, int32_t e
         s_retry_num++;
         ESP_LOGI(TAG, "retry to connect to the AP");
       } else {
+        if (status_callback)
+          status_callback(WIFI_DISCONNECTED);
         xEventGroupSetBits(s_wifi_event_group, WIFI_FAILED_BIT);
       }
       ESP_LOGI(TAG, "connect to the AP fail");
@@ -43,12 +47,17 @@ static void wifi_event_handler(void *arg, esp_event_base_t event_base, int32_t e
     ip_event_got_ip_t *event = (ip_event_got_ip_t *)event_data;
     ESP_LOGI(TAG, "got ip:" IPSTR, IP2STR(&event->ip_info.ip));
     s_retry_num = 0;
+    if (status_callback)
+      status_callback(WIFI_CONNECTED);
     xEventGroupSetBits(s_wifi_event_group, WIFI_CONNECTED_BIT);
   }
 }
 
-esp_err_t connect_wifi(const char *ssid, const char *password) {
+esp_err_t connect_wifi(const char *ssid, const char *password, wifi_status_callback status_callback) {
   esp_wifi_stop();
+
+  if (status_callback)
+    status_callback(WIFI_CONNECTING);
 
   s_wifi_event_group = xEventGroupCreate();
   ESP_ERROR_CHECK(
@@ -88,10 +97,10 @@ esp_err_t connect_wifi(const char *ssid, const char *password) {
   s_wifi_event_group = NULL;
 
   if (bits & WIFI_CONNECTED_BIT) {
-    ESP_LOGI(TAG, "connected to ap SSID:%s", wifi_config.sta.ssid);
+    ESP_LOGI(TAG, "connected to ap SSID: %s", wifi_config.sta.ssid);
     return ESP_OK;
   } else if (bits & WIFI_FAILED_BIT) {
-    ESP_LOGI(TAG, "Failed to connect to SSID:%s", wifi_config.sta.ssid);
+    ESP_LOGI(TAG, "Failed to connect to SSID: %s", wifi_config.sta.ssid);
     esp_wifi_stop();
     return ESP_FAIL;
   } else {
@@ -100,7 +109,8 @@ esp_err_t connect_wifi(const char *ssid, const char *password) {
   return ESP_FAIL;
 }
 
-esp_err_t connect_wifi_with_nvs() {
+esp_err_t connect_wifi_with_nvs(wifi_status_callback _status_callback) {
+  status_callback = _status_callback;
   nvs_handle_t nvs_handle;
   ESP_ERROR_CHECK(nvs_open("wifi", NVS_READONLY, &nvs_handle));
 
@@ -110,5 +120,5 @@ esp_err_t connect_wifi_with_nvs() {
   ESP_ERROR_CHECK(nvs_get_str(nvs_handle, "password", password, &passphrase_size));
   nvs_close(nvs_handle);
 
-  return connect_wifi(ssid, password);
+  return connect_wifi(ssid, password, status_callback);
 }
