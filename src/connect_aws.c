@@ -22,6 +22,7 @@
 
 static const char *TAG = "CONNECT AWS";
 static awsiot_mqtt_receiver_callback mqtt_receiver = NULL;
+static awsiot_status_callback status_callback = NULL;
 
 void iot_subscribe_callback_handler(AWS_IoT_Client *pClient, char *topicName, uint16_t topicNameLen,
                                     IoT_Publish_Message_Params *params, void *pData) {
@@ -33,6 +34,8 @@ void iot_subscribe_callback_handler(AWS_IoT_Client *pClient, char *topicName, ui
 void disconnectCallbackHandler(AWS_IoT_Client *pClient, void *data) {
   ESP_LOGW(TAG, "MQTT Disconnect");
   IoT_Error_t rc = FAILURE;
+  if (status_callback)
+    status_callback(AWSIOT_DISCONNECTED);
 
   if (NULL == pClient) {
     return;
@@ -71,8 +74,10 @@ const char *get_nvs_value(nvs_handle_t nvs_handle, const char *name) {
 static AWS_IoT_Client client;
 static char topic[256];
 
-esp_err_t awsiot_connect_with_nvs(awsiot_mqtt_receiver_callback callback) {
-  mqtt_receiver = callback;
+esp_err_t awsiot_connect_with_nvs(awsiot_mqtt_receiver_callback message_callback,
+                                  awsiot_status_callback _status_callback) {
+  mqtt_receiver = message_callback;
+  status_callback = _status_callback;
   size_t required_size;
 
   int32_t i = 0;
@@ -228,6 +233,9 @@ esp_err_t awsiot_publish(const char *message) {
 
 void awsiot_loop_task(void *pvParameters) {
   ESP_LOGI(TAG, ">> awsiot_loop_task");
+  if (status_callback)
+    status_callback(AWSIOT_CONNECTED);
+
   int rc = SUCCESS;
   while ((NETWORK_ATTEMPTING_RECONNECT == rc || NETWORK_RECONNECTED == rc || SUCCESS == rc)) {
     // Max time the yield function will wait for read messages
@@ -235,8 +243,14 @@ void awsiot_loop_task(void *pvParameters) {
     if (NETWORK_ATTEMPTING_RECONNECT == rc) {
       // If the client is attempting to reconnect we will skip the rest of the loop.
       continue;
+    } else {
+      if (status_callback)
+        status_callback(AWSIOT_CONNECTED);
     }
   }
+  if (status_callback)
+    status_callback(AWSIOT_DISCONNECTED);
+
   ESP_LOGI(TAG, "awsiot_loop_task> END");
 }
 

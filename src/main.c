@@ -36,7 +36,8 @@ const struct BLECommand default_commands[] = {
     {.name = "CHECK_AWSIOT", .multiline = false, .func = command_CHECK_AWSIOT},
 };
 
-struct BLECommand **original_commands = NULL;
+static struct BLECommand **original_commands = NULL;
+static void (*smart_config_callback)(enum smart_config_callback_type) = NULL;
 
 static void initialisze_wifi(void) {
   nvs_flash_erase();
@@ -130,11 +131,22 @@ static void uartIncomingTask(void *parameter) {
   vTaskDelete(NULL);
 }
 
-void smart_config_ble_start(struct BLECommand *commands[]) {
+static void nordic_uart_callback(enum nordic_uart_callback_type callback_type) {
+  if (callback_type == NORDIC_UART_DISCONNECTED) {
+    smart_config_callback(SMART_CONFIG_WAIT_BLE);
+  } else if (callback_type == NORDIC_UART_CONNECTED) {
+    smart_config_callback(SMART_CONFIG_READY_TO_CONFIG);
+  }
+}
+
+void smart_config_ble_start(struct BLECommand *commands[], void (*callback)(enum smart_config_callback_type)) {
   ESP_ERROR_CHECK(esp_event_loop_create_default());
   original_commands = commands;
+  smart_config_callback = callback;
 
   initialisze_wifi();
-  nordic_uart_start();
+  if (smart_config_callback)
+    smart_config_callback(SMART_CONFIG_WAIT_BLE);
+  nordic_uart_start(nordic_uart_callback);
   xTaskCreate(uartIncomingTask, "uartIncomingTask", 8192 * 2, NULL, 1, NULL);
 }

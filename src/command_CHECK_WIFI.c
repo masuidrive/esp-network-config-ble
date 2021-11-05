@@ -8,7 +8,7 @@
 static const char *TAG = "CHECK WIFI";
 
 void command_CHECK_WIFI(int argc, const char *args[], int datac, const char *data[]) {
-  if (connect_wifi_with_nvs() == ESP_OK) {
+  if (connect_wifi_with_nvs(NULL) == ESP_OK) {
     nordic_uart_sendln("OK");
     ESP_LOGI(TAG, "Successed to connect");
   } else {

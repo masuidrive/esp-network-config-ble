@@ -10,14 +10,14 @@
 static const char *TAG = "CHECK AWSIOT";
 
 void command_CHECK_AWSIOT(int argc, const char *args[], int datac, const char *data[]) {
-  if (connect_wifi_with_nvs() != ESP_OK) {
+  if (connect_wifi_with_nvs(NULL) != ESP_OK) {
     nordic_uart_sendln("ERROR: Failed to connect");
     nordic_uart_sendln("");
     ESP_LOGI(TAG, "Failed to connect");
     return;
   }
   ESP_LOGI(TAG, "Successed to connect");
-  if (awsiot_connect_with_nvs(NULL) == ESP_OK) {
+  if (awsiot_connect_with_nvs(NULL, NULL) == ESP_OK) {
     nordic_uart_sendln("OK");
     nordic_uart_sendln("");
   } else {
