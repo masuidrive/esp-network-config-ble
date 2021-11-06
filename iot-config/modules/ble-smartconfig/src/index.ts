@@ -20,8 +20,7 @@ export class SSIDItem {
 }
 
 export class IoTConfig {
-  mqtt_host: string = "";
-  mqtt_port: string = "443";
+  mqtt_uri: string = "";
   mqtt_topic: string = "";
   root_ca: string = "";
   cert: string = "";
@@ -122,8 +121,7 @@ export class BLESmartConfig {
   async set_awsiot(config: IoTConfig): Promise<boolean> {
     this.uart.clear();
 
-    await this.send_text("mqtt_host", config.mqtt_host);
-    await this.send_text("mqtt_port", config.mqtt_port);
+    await this.send_text("mqtt_uri", config.mqtt_uri);
     await this.send_text("mqtt_topic", config.mqtt_topic);
     await this.send_text_multiline("iot_root_ca", config.root_ca);
     await this.send_text_multiline("iot_cert", config.cert);

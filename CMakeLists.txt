@@ -13,17 +13,16 @@ idf_component_register(
     "src/main.c"
     "src/tokenizer.c"
     "src/wifi_util.c"
-    "src/aws_util.c"
+    "src/mqtt_util.c"
     "src/command_LIST_SSID.c"
     "src/command_SET_WIFI.c"
     "src/command_GET.c"
     "src/command_SET.c"
-    "src/command_CHECK_AWS.c"
+    "src/command_CHECK_MQTT.c"
     "src/command_CHECK_WIFI.c"
   REQUIRES
     bt
     esp-nimble-nordic-uart
-    esp-aws-iot
     mqtt
   PRIV_REQUIRES
     ${ESP_NIMBLE_PRIV_REQUIRES}

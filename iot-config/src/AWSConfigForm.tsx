@@ -19,26 +19,12 @@ export function AWSConfigForm(props: Props) {
           margin="normal"
           required
           fullWidth
-          id="mqtt_host"
-          label="MQTT Host"
-          name="mqtt_host"
-          value={props.config.mqtt_host}
+          id="mqtt_uri"
+          label="MQTT URI"
+          name="mqtt_uri"
+          value={props.config.mqtt_uri}
           onChange={(e) =>
-            props.onChange({...props.config, mqtt_host: e.target.value})
-          }
-        />
-
-        <TextField
-          variant="outlined"
-          margin="normal"
-          required
-          fullWidth
-          id="mqtt_port"
-          label="MQTT Port"
-          name="mqtt_port"
-          value={props.config.mqtt_port}
-          onChange={(e) =>
-            props.onChange({...props.config, mqtt_port: e.target.value})
+            props.onChange({...props.config, mqtt_uri: e.target.value})
           }
         />
 

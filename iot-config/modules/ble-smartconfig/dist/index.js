@@ -55,8 +55,7 @@ var SSIDItem = /** @class */ (function () {
 exports.SSIDItem = SSIDItem;
 var IoTConfig = /** @class */ (function () {
     function IoTConfig() {
-        this.mqtt_host = "";
-        this.mqtt_port = "443";
+        this.mqtt_uri = "";
         this.mqtt_topic = "";
         this.root_ca = "";
         this.cert = "";

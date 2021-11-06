@@ -23,7 +23,7 @@ void command_SET_WIFI(int argc, const char *args[], int datac, const char *data[
 void command_SET_STR(int argc, const char *args[], int datac, const char *data[]);
 void command_SET_MULTI(int argc, const char *args[], int datac, const char *data[]);
 void command_GET_STR(int argc, const char *args[], int datac, const char *data[]);
-void command_CHECK_AWSIOT(int argc, const char *args[], int datac, const char *data[]);
+void command_CHECK_MQTT(int argc, const char *args[], int datac, const char *data[]);
 void command_CHECK_WIFI(int argc, const char *args[], int datac, const char *data[]);
 
 const struct BLECommand default_commands[] = {
@@ -33,20 +33,11 @@ const struct BLECommand default_commands[] = {
     {.name = "SET_STR", .multiline = false, .func = command_SET_STR},
     {.name = "SET_MULTI", .multiline = true, .func = command_SET_MULTI},
     {.name = "CHECK_WIFI", .multiline = false, .func = command_CHECK_WIFI},
-    {.name = "CHECK_AWSIOT", .multiline = false, .func = command_CHECK_AWSIOT},
+    {.name = "CHECK_MQTT", .multiline = false, .func = command_CHECK_MQTT},
 };
 
 static struct BLECommand **original_commands = NULL;
 static void (*smart_config_callback)(enum smart_config_callback_type) = NULL;
-
-static void initialisze_wifi(void) {
-
-  wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
-  ESP_ERROR_CHECK(esp_wifi_init(&cfg));
-  ESP_ERROR_CHECK(esp_wifi_set_storage(WIFI_STORAGE_RAM));
-  ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA));
-  ESP_ERROR_CHECK(esp_wifi_start());
-}
 
 static void run_command(const struct BLECommand *command, char *item) {
   char *args[MAX_COMMAND_ARGC];

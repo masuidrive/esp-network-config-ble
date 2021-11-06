@@ -23,12 +23,16 @@ static esp_event_handler_instance_t instance_got_ip;
 static wifi_status_callback status_callback = NULL;
 static int max_retry = -1;
 static int s_retry_num = 0;
+static bool is_connected = false;
 
 static void wifi_event_handler(void *arg, esp_event_base_t event_base, int32_t event_id, void *event_data) {
   if (event_base == WIFI_EVENT) {
     if (event_id == WIFI_EVENT_STA_START) {
       esp_wifi_connect();
     } else if (event_id == WIFI_EVENT_STA_DISCONNECTED) {
+      is_connected = false;
+      ESP_LOGI(TAG, "connect to the AP fail");
+
       if (s_retry_num < max_retry || max_retry < 0) {
         if (status_callback)
           status_callback(WIFI_RECONNECTING);
@@ -41,12 +45,12 @@ static void wifi_event_handler(void *arg, esp_event_base_t event_base, int32_t e
         if (s_wifi_event_group)
           xEventGroupSetBits(s_wifi_event_group, WIFI_FAILED_BIT);
       }
-      ESP_LOGI(TAG, "connect to the AP fail");
     }
   } else if (event_base == IP_EVENT && event_id == IP_EVENT_STA_GOT_IP) {
     ip_event_got_ip_t *event = (ip_event_got_ip_t *)event_data;
     ESP_LOGI(TAG, "got ip:" IPSTR, IP2STR(&event->ip_info.ip));
     s_retry_num = 0;
+    is_connected = true;
     if (status_callback)
       status_callback(WIFI_CONNECTED);
     if (s_wifi_event_group)
@@ -147,3 +151,5 @@ esp_err_t wifi_disconnect() {
   esp_wifi_stop();
   return ESP_OK;
 }
+
+bool wifi_is_connected() { return is_connected; }

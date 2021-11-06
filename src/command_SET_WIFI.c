@@ -35,10 +35,10 @@ void command_SET_WIFI(int argc, const char *args[], int datac, const char *data[
     nvs_close(nvs_handle);
 
     nordic_uart_sendln("OK");
-    ESP_LOGI(TAG, "Successed to connect to SSID:%s, password:%s", args[0], args[1]);
+    ESP_LOGI(TAG, "Successed to connect to SSID:%s, password:%s", ssid, password);
   } else {
     nordic_uart_sendln("ERROR: Failed to connect");
-    ESP_LOGI(TAG, "Failed to connect to SSID:%s, password:%s", args[0], args[1]);
+    ESP_LOGI(TAG, "Failed to connect to SSID:%s, password:%s", ssid, password);
   }
   esp_wifi_stop();
 
