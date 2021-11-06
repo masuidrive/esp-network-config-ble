@@ -20,16 +20,18 @@ static const char *TAG = "SETWIFI";
 void command_SET_WIFI(int argc, const char *args[], int datac, const char *data[]) {
   if (argc < 1) {
     nordic_uart_sendln("ERROR \"SSID is blank\"");
-    nordic_uart_sendln("");
     return;
   }
 
-  if (wifi_connect(3, args[0], args[1], NULL) == ESP_OK) {
+  const char *ssid = args[0];
+  const char *password = argc < 2 ? "" : args[1];
+
+  if (wifi_connect(ssid, password, 10, NULL) == ESP_OK) {
     // save wifi config
     nvs_handle_t nvs_handle;
     ESP_ERROR_CHECK(nvs_open("wifi", NVS_READWRITE, &nvs_handle));
-    ESP_ERROR_CHECK(nvs_set_str(nvs_handle, "ssid", args[0]));
-    ESP_ERROR_CHECK(nvs_set_str(nvs_handle, "password", args[1]));
+    ESP_ERROR_CHECK(nvs_set_str(nvs_handle, "ssid", ssid));
+    ESP_ERROR_CHECK(nvs_set_str(nvs_handle, "password", password));
     nvs_close(nvs_handle);
 
     nordic_uart_sendln("OK");

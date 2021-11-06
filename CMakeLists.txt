@@ -24,6 +24,7 @@ idf_component_register(
     bt
     esp-nimble-nordic-uart
     esp-aws-iot
+    mqtt
   PRIV_REQUIRES
     ${ESP_NIMBLE_PRIV_REQUIRES}
 )

@@ -69,11 +69,6 @@ static void wifi_setup(const char *ssid, const char *password) {
   strlcpy((char *)wifi_config.sta.ssid, ssid, sizeof(wifi_config.sta.ssid));
   strlcpy((char *)wifi_config.sta.password, password, sizeof(wifi_config.sta.password));
 
-  wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
-  ESP_ERROR_CHECK(esp_wifi_init(&cfg));
-  ESP_ERROR_CHECK(esp_wifi_set_storage(WIFI_STORAGE_RAM));
-
-  ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA));
   ESP_ERROR_CHECK(esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_config));
   ESP_ERROR_CHECK(esp_wifi_start());
 }
@@ -82,6 +77,7 @@ esp_err_t wifi_connect(const char *ssid, const char *password, int _max_retry, w
   max_retry = _max_retry;
   status_callback = _status_callback;
   s_retry_num = 0;
+  ESP_LOGI(TAG, "connect SSID: %s, %s", ssid, password);
 
   esp_wifi_stop();
 
@@ -138,6 +134,11 @@ esp_err_t wifi_init() {
       esp_event_handler_instance_register(WIFI_EVENT, ESP_EVENT_ANY_ID, &wifi_event_handler, NULL, &instance_any_id));
   ESP_ERROR_CHECK(
       esp_event_handler_instance_register(IP_EVENT, ESP_EVENT_ANY_ID, &wifi_event_handler, NULL, &instance_got_ip));
+
+  wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
+  ESP_ERROR_CHECK(esp_wifi_init(&cfg));
+  ESP_ERROR_CHECK(esp_wifi_set_storage(WIFI_STORAGE_RAM));
+  ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA));
 
   return ESP_OK;
 }

@@ -40,15 +40,6 @@ static struct BLECommand **original_commands = NULL;
 static void (*smart_config_callback)(enum smart_config_callback_type) = NULL;
 
 static void initialisze_wifi(void) {
-  nvs_flash_erase();
-  esp_err_t ret = nvs_flash_init();
-  if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
-    ESP_ERROR_CHECK(nvs_flash_erase());
-    ret = nvs_flash_init();
-  }
-  ESP_ERROR_CHECK(ret);
-  ESP_ERROR_CHECK(esp_netif_init());
-  esp_netif_create_default_wifi_sta();
 
   wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
   ESP_ERROR_CHECK(esp_wifi_init(&cfg));
@@ -76,7 +67,6 @@ static void run_command(const struct BLECommand *command, char *item) {
       size_t dataline_size;
       char *dataline = (char *)xRingbufferReceive(nordic_uart_rx_buf_handle, &dataline_size, portMAX_DELAY);
       size_t dataline_len = strlen(dataline);
-      ESP_LOGI(TAG, "ML: %d, %d", dataline_len, dataline_size);
       if (dataline_size <= 1)
         break;
       if (datac >= CONFIG_NORDIC_UART_MAX_LINE_LENGTH - 1) {
@@ -140,11 +130,10 @@ static void nordic_uart_callback(enum nordic_uart_callback_type callback_type) {
 }
 
 void smart_config_ble_start(struct BLECommand *commands[], void (*callback)(enum smart_config_callback_type)) {
-  ESP_ERROR_CHECK(esp_event_loop_create_default());
   original_commands = commands;
   smart_config_callback = callback;
+  ESP_ERROR_CHECK(esp_wifi_start());
 
-  initialisze_wifi();
   if (smart_config_callback)
     smart_config_callback(SMART_CONFIG_WAIT_BLE);
   nordic_uart_start(nordic_uart_callback);
