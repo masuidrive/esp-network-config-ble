@@ -1,8 +1,4 @@
-
-#include <stdbool.h>
-#include <string.h>
-
-#include "tokenizer.h"
+#include "esp-smartconfig-ble-internal.h"
 
 #define is_skip_char(chr) (chr == '\r')
 #define is_escape_char(chr) (chr == '\\')

@@ -1,18 +1,4 @@
-#include <stdint.h>
-#include <stdio.h>
-#include <string.h>
-
-#include "esp-nimble-nordic-uart.h"
-#include "esp-smartconfig-ble.h"
-#include "esp32/himem.h"
-#include "esp_log.h"
-#include "esp_netif.h"
-#include "esp_wifi.h"
-#include "freertos/ringbuf.h"
-#include "freertos/task.h"
-#include "nvs_flash.h"
-#include "tokenizer.h"
-
+#include "esp-smartconfig-ble-internal.h"
 static const char *TAG = "SmartConfig";
 
 #define MAX_COMMAND_ARGC 8
@@ -25,13 +11,15 @@ void command_SET_MULTI(int argc, const char *args[], int datac, const char *data
 void command_GET_STR(int argc, const char *args[], int datac, const char *data[]);
 void command_CHECK_MQTT(int argc, const char *args[], int datac, const char *data[]);
 void command_CHECK_WIFI(int argc, const char *args[], int datac, const char *data[]);
+void command_ERASE(int argc, const char *args[], int datac, const char *data[]);
 
 const struct BLECommand default_commands[] = {
-    {.name = "LIST_SSID", .multiline = false, .func = command_LIST_SSID},
-    {.name = "SET_WIFI", .multiline = false, .func = command_SET_WIFI},
     {.name = "GET_STR", .multiline = false, .func = command_GET_STR},
     {.name = "SET_STR", .multiline = false, .func = command_SET_STR},
     {.name = "SET_MULTI", .multiline = true, .func = command_SET_MULTI},
+    {.name = "ERASE", .multiline = false, .func = command_ERASE},
+    {.name = "LIST_SSID", .multiline = false, .func = command_LIST_SSID},
+    {.name = "SET_WIFI", .multiline = false, .func = command_SET_WIFI},
     {.name = "CHECK_WIFI", .multiline = false, .func = command_CHECK_WIFI},
     {.name = "CHECK_MQTT", .multiline = false, .func = command_CHECK_MQTT},
 };
@@ -120,13 +108,18 @@ static void nordic_uart_callback(enum nordic_uart_callback_type callback_type) {
   }
 }
 
-void smart_config_ble_start(struct BLECommand *commands[], void (*callback)(enum smart_config_callback_type)) {
+esp_err_t smart_config_ble_start(struct BLECommand *commands[], void (*callback)(enum smart_config_callback_type)) {
   original_commands = commands;
   smart_config_callback = callback;
-  ESP_ERROR_CHECK(esp_wifi_start());
+  CATCH_ESP_FAIL(esp_wifi_start());
 
   if (smart_config_callback)
     smart_config_callback(SMART_CONFIG_WAIT_BLE);
+
   nordic_uart_start(nordic_uart_callback);
   xTaskCreate(uartIncomingTask, "uartIncomingTask", 8192 * 2, NULL, 1, NULL);
+  return ESP_OK;
+
+esp_failed:
+  return ESP_FAIL;
 }

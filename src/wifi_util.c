@@ -1,17 +1,4 @@
-#include <stdint.h>
-#include <stdio.h>
-#include <string.h>
-
-#include "esp_event.h"
-#include "esp_log.h"
-#include "esp_netif.h"
-#include "esp_wifi.h"
-#include "freertos/FreeRTOS.h"
-#include "freertos/event_groups.h"
-#include "freertos/task.h"
-#include "nvs_flash.h"
-#include "wifi_util.h"
-
+#include "esp-smartconfig-ble-internal.h"
 static const char *TAG = "WIFI";
 
 #define WIFI_CONNECTED_BIT BIT0
@@ -28,7 +15,7 @@ static bool is_connected = false;
 static void wifi_event_handler(void *arg, esp_event_base_t event_base, int32_t event_id, void *event_data) {
   if (event_base == WIFI_EVENT) {
     if (event_id == WIFI_EVENT_STA_START) {
-      esp_wifi_connect();
+      CATCH_ESP_FAIL(esp_wifi_connect());
     } else if (event_id == WIFI_EVENT_STA_DISCONNECTED) {
       is_connected = false;
       ESP_LOGI(TAG, "connect to the AP fail");
@@ -36,7 +23,7 @@ static void wifi_event_handler(void *arg, esp_event_base_t event_base, int32_t e
       if (s_retry_num < max_retry || max_retry < 0) {
         if (status_callback)
           status_callback(WIFI_RECONNECTING);
-        esp_wifi_connect();
+        CATCH_ESP_FAIL(esp_wifi_connect());
         s_retry_num++;
         ESP_LOGI(TAG, "retry to connect to the AP: %d / %d", s_retry_num, max_retry);
       } else {
@@ -56,9 +43,14 @@ static void wifi_event_handler(void *arg, esp_event_base_t event_base, int32_t e
     if (s_wifi_event_group)
       xEventGroupSetBits(s_wifi_event_group, WIFI_CONNECTED_BIT);
   }
+  return;
+
+esp_failed:
+  // TODO: esp_wifi_connect error
+  return;
 }
 
-static void wifi_setup(const char *ssid, const char *password) {
+static esp_err_t wifi_setup(const char *ssid, const char *password) {
   wifi_config_t wifi_config = {
       .sta =
           {
@@ -69,12 +61,20 @@ static void wifi_setup(const char *ssid, const char *password) {
               .pmf_cfg = {.capable = true, .required = false},
           },
   };
+  if (strlen(password) == 0) {
+    wifi_config.sta.threshold.authmode = WIFI_AUTH_OPEN;
+  }
 
   strlcpy((char *)wifi_config.sta.ssid, ssid, sizeof(wifi_config.sta.ssid));
   strlcpy((char *)wifi_config.sta.password, password, sizeof(wifi_config.sta.password));
 
-  ESP_ERROR_CHECK(esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_config));
-  ESP_ERROR_CHECK(esp_wifi_start());
+  CATCH_ESP_FAIL(esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_config));
+  CATCH_ESP_FAIL(esp_wifi_start());
+
+  return ESP_OK;
+
+esp_failed:
+  return ESP_FAIL;
 }
 
 esp_err_t wifi_connect(const char *ssid, const char *password, int _max_retry, wifi_status_callback _status_callback) {
@@ -83,7 +83,7 @@ esp_err_t wifi_connect(const char *ssid, const char *password, int _max_retry, w
   s_retry_num = 0;
   ESP_LOGI(TAG, "connect SSID: %s, %s", ssid, password);
 
-  esp_wifi_stop();
+  CATCH_ESP_FAIL(esp_wifi_stop());
 
   if (status_callback)
     status_callback(WIFI_CONNECTING);
@@ -92,7 +92,7 @@ esp_err_t wifi_connect(const char *ssid, const char *password, int _max_retry, w
   s_wifi_event_group = xEventGroupCreate();
 
   // init wifi config
-  wifi_setup(ssid, password);
+  CATCH_ESP_FAIL(wifi_setup(ssid, password));
 
   // wait wifi_event_handler task
   EventBits_t bits =
@@ -106,45 +106,55 @@ esp_err_t wifi_connect(const char *ssid, const char *password, int _max_retry, w
     return ESP_OK;
   } else if (bits & WIFI_FAILED_BIT) {
     ESP_LOGI(TAG, "Failed to connect to SSID: %s", ssid);
-    esp_wifi_stop();
+    CATCH_ESP_FAIL(esp_wifi_stop());
     return ESP_FAIL;
   } else {
     ESP_LOGE(TAG, "UNEXPECTED EVENT");
-    esp_wifi_stop();
+    CATCH_ESP_FAIL(esp_wifi_stop());
     return ESP_FAIL;
   }
+
+  return ESP_OK;
+
+esp_failed:
+  return ESP_FAIL;
 }
 
 esp_err_t wifi_connect_with_nvs(int max_retry, wifi_status_callback status_callback) {
   nvs_handle_t nvs_handle;
-  ESP_ERROR_CHECK(nvs_open("wifi", NVS_READONLY, &nvs_handle));
+  CATCH_ESP_FAIL(nvs_open("wifi", NVS_READONLY, &nvs_handle));
 
   size_t ssid_size = MAX_SSID_LEN, passphrase_size = MAX_PASSPHRASE_LEN;
   char ssid[MAX_SSID_LEN], password[MAX_PASSPHRASE_LEN];
 
-  ESP_ERROR_CHECK(nvs_get_str(nvs_handle, "ssid", ssid, &ssid_size));
-  ESP_ERROR_CHECK(nvs_get_str(nvs_handle, "password", password, &passphrase_size));
+  CATCH_ESP_FAIL(nvs_get_str(nvs_handle, "ssid", ssid, &ssid_size));
+  CATCH_ESP_FAIL(nvs_get_str(nvs_handle, "password", password, &passphrase_size));
 
   nvs_close(nvs_handle);
 
   return wifi_connect(ssid, password, max_retry, status_callback);
+
+esp_failed:
+  return ESP_ERR_NOT_FOUND; // NVS config not found
 }
 
 esp_err_t wifi_init() {
-  ESP_ERROR_CHECK(esp_netif_init());
+  CATCH_ESP_FAIL(esp_netif_init());
   esp_netif_create_default_wifi_sta();
 
-  ESP_ERROR_CHECK(
+  CATCH_ESP_FAIL(
       esp_event_handler_instance_register(WIFI_EVENT, ESP_EVENT_ANY_ID, &wifi_event_handler, NULL, &instance_any_id));
-  ESP_ERROR_CHECK(
+  CATCH_ESP_FAIL(
       esp_event_handler_instance_register(IP_EVENT, ESP_EVENT_ANY_ID, &wifi_event_handler, NULL, &instance_got_ip));
 
   wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
-  ESP_ERROR_CHECK(esp_wifi_init(&cfg));
-  ESP_ERROR_CHECK(esp_wifi_set_storage(WIFI_STORAGE_RAM));
-  ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA));
+  CATCH_ESP_FAIL(esp_wifi_init(&cfg));
+  CATCH_ESP_FAIL(esp_wifi_set_storage(WIFI_STORAGE_RAM));
+  CATCH_ESP_FAIL(esp_wifi_set_mode(WIFI_MODE_STA));
 
   return ESP_OK;
+esp_failed:
+  return ESP_FAIL;
 }
 
 esp_err_t wifi_disconnect() {

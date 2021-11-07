@@ -1,25 +1,8 @@
-#include <stdint.h>
-#include <stdio.h>
-#include <string.h>
-
-#include "mqtt_util.h"
-#include "wifi_util.h"
-
-#include "esp_event.h"
-#include "esp_log.h"
-#include "esp_netif.h"
-#include "esp_wifi.h"
-#include "freertos/FreeRTOS.h"
-#include "freertos/event_groups.h"
-#include "freertos/task.h"
-#include "nvs_flash.h"
-
-#include "esp_tls.h"
-#include "mqtt_client.h"
+#include "esp-smartconfig-ble-internal.h"
+static const char *TAG = "MQTT_UTIL";
 
 #define RETRY_COUNT 5
 
-static const char *TAG = "MQTT_UTIL";
 static mqtt_message_receiver_callback message_callback = NULL;
 static mqtt_status_callback status_callback = NULL;
 static esp_mqtt_client_handle_t client;
@@ -29,13 +12,15 @@ typedef enum QoS { QOS0 = 0, QOS1 = 1 } QoS;
 
 const char *get_nvs_value(nvs_handle_t nvs_handle, const char *name) {
   size_t required_size = 0;
-  esp_err_t ret = nvs_get_str(nvs_handle, name, NULL, &required_size);
-  if (ret != ESP_OK) {
-    return NULL;
-  }
-  char *value = malloc(required_size);
-  ESP_ERROR_CHECK(nvs_get_str(nvs_handle, name, value, &required_size));
+  char *value = NULL;
+  CATCH_ESP_FAIL(nvs_get_str(nvs_handle, name, NULL, &required_size));
+  value = malloc(required_size);
+  CATCH_ESP_FAIL(nvs_get_str(nvs_handle, name, value, &required_size));
   return value;
+
+esp_failed:
+  free(value);
+  return NULL;
 }
 
 static void log_error_if_nonzero(const char *message, int error_code) {
@@ -48,11 +33,12 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
   ESP_LOGD(TAG, "Event dispatched from event loop base=%s, event_id=%d", base, event_id);
   esp_mqtt_event_handle_t event = event_data;
   esp_mqtt_client_handle_t client = event->client;
-  int msg_id;
+
   switch ((esp_mqtt_event_id_t)event_id) {
   case MQTT_EVENT_CONNECTED:
     ESP_LOGI(TAG, "MQTT_EVENT_CONNECTED");
-    esp_mqtt_client_subscribe(client, topic, 1);
+    if (esp_mqtt_client_subscribe(client, topic, 1) < 0) {
+    }
     break;
 
   case MQTT_EVENT_DISCONNECTED:
@@ -114,9 +100,6 @@ esp_err_t mqtt_connect_with_nvs(mqtt_message_receiver_callback _message_callback
       .cert_pem = (const char *)get_nvs_value(nvs_handle, "mqtt_root_ca"),
   };
   strlcpy(topic, (const char *)get_nvs_value(nvs_handle, "mqtt_topic"), sizeof(topic));
-  ESP_LOGI(TAG, "client_cert_pem:%s", mqtt_cfg.client_cert_pem);
-  ESP_LOGI(TAG, "client_key_pem:%s", mqtt_cfg.client_key_pem);
-  ESP_LOGI(TAG, "cert_pem:%s", mqtt_cfg.cert_pem);
 
   client = esp_mqtt_client_init(&mqtt_cfg);
 

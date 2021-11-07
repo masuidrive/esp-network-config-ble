@@ -12,5 +12,5 @@ enum smart_config_callback_type {
   SMART_CONFIG_READY_TO_CONFIG,
 };
 
-void smart_config_ble_start(struct BLECommand *commands[],
-                            void (*callback)(enum smart_config_callback_type callback_type));
+esp_err_t smart_config_ble_start(struct BLECommand *commands[],
+                                 void (*callback)(enum smart_config_callback_type callback_type));
