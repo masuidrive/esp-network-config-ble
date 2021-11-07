@@ -23,6 +23,7 @@
 #include <nvs_flash.h>
 
 #define NVS_NAMESPACE "bleconfig"
+#define WIFI_TRY_CONNECT_RETRY 5 // Number of retries during connection test
 
 // clang-format off
 #define CATCH_ESP_FAIL(cmd) if ((cmd) != ESP_OK) { goto esp_failed; }
