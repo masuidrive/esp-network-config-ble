@@ -3,14 +3,14 @@
 #include "esp_err.h"
 #include <stdbool.h>
 
-enum wifi_callback_status {
-  WIFI_NOT_CONFIG,
+enum wifi_status {
+  WIFI_NONE,
   WIFI_CONNECTING,
   WIFI_RECONNECTING,
   WIFI_CONNECTED,
   WIFI_DISCONNECTED,
 };
-typedef void (*wifi_status_callback)(enum wifi_callback_status status);
+typedef void (*wifi_status_callback)(enum wifi_status status);
 
 esp_err_t wifi_init();
 esp_err_t wifi_disconnect();

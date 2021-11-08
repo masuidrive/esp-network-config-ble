@@ -109,7 +109,8 @@ static void nordic_uart_callback(enum nordic_uart_callback_type callback_type) {
   }
 }
 
-esp_err_t smart_config_ble_start(struct BLECommand *commands[], void (*callback)(enum smart_config_callback_type)) {
+esp_err_t smart_config_ble_start(const struct BLECommand *commands[],
+                                 void (*callback)(enum smart_config_callback_type)) {
   original_commands = commands;
   smart_config_callback = callback;
   CATCH_ESP_FAIL(esp_wifi_start(), "esp_wifi_start");

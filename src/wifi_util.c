@@ -5,8 +5,8 @@ static const char *TAG = "WIFI";
 #define WIFI_FAILED_BIT BIT1
 
 static EventGroupHandle_t s_wifi_event_group = NULL;
-static esp_event_handler_instance_t instance_any_id;
-static esp_event_handler_instance_t instance_got_ip;
+static esp_event_handler_instance_t instance_any_id = NULL;
+static esp_event_handler_instance_t instance_got_ip = NULL;
 static wifi_status_callback status_callback = NULL;
 static int max_retry = -1;
 static int s_retry_num = 0;
@@ -152,6 +152,7 @@ esp_err_t wifi_init() {
   CATCH_ESP_FAIL(esp_wifi_set_mode(WIFI_MODE_STA), "WIFI_MODE_STA");
 
   return ESP_OK;
+
 esp_failed:
   return ESP_FAIL;
 }

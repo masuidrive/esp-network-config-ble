@@ -40,5 +40,5 @@ extern const char* esp_fail_err_msg;
   nordic_uart_sendln(""); \
 }
 #define SEND_OK() SEND_RESULT("OK"); ESP_LOGI(TAG, "Send OK in %s", __FUNCTION__);
-#define SEND_ESP_ERROR() SEND_RESULT_FORMAT("ERROR: %s %s", (TAG), esp_fail_err_msg); ESP_LOGI(TAG, "Send ERROR: %s in %s", esp_fail_err_msg, __FUNCTION__);
+#define SEND_ESP_ERROR() SEND_RESULT_FORMAT("ERROR %s %s", (TAG), esp_fail_err_msg); ESP_LOGI(TAG, "Send ERROR: %s in %s", esp_fail_err_msg, __FUNCTION__);
 
