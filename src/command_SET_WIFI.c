@@ -1,20 +1,4 @@
-#include <stdint.h>
-#include <stdio.h>
-#include <string.h>
-
-#include "esp-nimble-nordic-uart.h"
-#include "esp-smartconfig-ble.h"
-#include "wifi_util.h"
-
-#include "esp_event.h"
-#include "esp_log.h"
-#include "esp_netif.h"
-#include "esp_wifi.h"
-#include "freertos/FreeRTOS.h"
-#include "freertos/event_groups.h"
-#include "freertos/task.h"
-#include "nvs_flash.h"
-
+#include "esp-smartconfig-ble-internal.h"
 static const char *TAG = "SETWIFI";
 
 void command_SET_WIFI(int argc, const char *args[], int datac, const char *data[]) {
@@ -29,7 +13,7 @@ void command_SET_WIFI(int argc, const char *args[], int datac, const char *data[
   if (wifi_connect(ssid, password, 5, NULL) == ESP_OK) {
     // save wifi config
     nvs_handle_t nvs_handle;
-    ESP_ERROR_CHECK(nvs_open("wifi", NVS_READWRITE, &nvs_handle));
+    ESP_ERROR_CHECK(nvs_open(NVS_NAMESPACE, NVS_READWRITE, &nvs_handle));
     ESP_ERROR_CHECK(nvs_set_str(nvs_handle, "ssid", ssid));
     ESP_ERROR_CHECK(nvs_set_str(nvs_handle, "password", password));
     nvs_close(nvs_handle);

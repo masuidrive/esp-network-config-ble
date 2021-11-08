@@ -15,7 +15,7 @@ static bool is_connected = false;
 static void wifi_event_handler(void *arg, esp_event_base_t event_base, int32_t event_id, void *event_data) {
   if (event_base == WIFI_EVENT) {
     if (event_id == WIFI_EVENT_STA_START) {
-      CATCH_ESP_FAIL(esp_wifi_connect(), "esp_wifi_connect");
+      esp_wifi_connect();
     } else if (event_id == WIFI_EVENT_STA_DISCONNECTED) {
       is_connected = false;
       ESP_LOGI(TAG, "connect to the AP fail");
@@ -23,7 +23,7 @@ static void wifi_event_handler(void *arg, esp_event_base_t event_base, int32_t e
       if (s_retry_num < max_retry || max_retry < 0) {
         if (status_callback)
           status_callback(WIFI_RECONNECTING);
-        CATCH_ESP_FAIL(esp_wifi_connect(), "esp_wifi_connect");
+        esp_wifi_connect();
         s_retry_num++;
         ESP_LOGI(TAG, "retry to connect to the AP: %d / %d", s_retry_num, max_retry);
       } else {
@@ -43,10 +43,6 @@ static void wifi_event_handler(void *arg, esp_event_base_t event_base, int32_t e
     if (s_wifi_event_group)
       xEventGroupSetBits(s_wifi_event_group, WIFI_CONNECTED_BIT);
   }
-  return;
-
-esp_failed:
-  // TODO: esp_wifi_connect error
   return;
 }
 
@@ -135,6 +131,7 @@ esp_err_t wifi_connect_with_nvs(int max_retry, wifi_status_callback status_callb
   return wifi_connect(ssid, password, max_retry, status_callback);
 
 esp_failed:
+  nvs_close(nvs_handle);
   return ESP_ERR_NOT_FOUND; // NVS config not found
 }
 

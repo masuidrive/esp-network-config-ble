@@ -10,8 +10,9 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <freertos/event_groups.h>
 #include <freertos/freertos.h>
+
+#include <freertos/event_groups.h>
 #include <freertos/ringbuf.h>
 #include <freertos/task.h>
 

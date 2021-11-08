@@ -88,10 +88,10 @@ esp_err_t mqtt_connect_with_nvs(mqtt_message_receiver_callback _message_callback
   status_callback = _status_callback;
   if (status_callback)
     status_callback(MQTT_STARTING);
-  nvs_handle_t nvs_handle;
-  ESP_ERROR_CHECK(nvs_open("bleconfig", NVS_READWRITE, &nvs_handle));
 
-  ESP_LOGI(TAG, "URI:%s", get_nvs_value(nvs_handle, "mqtt_uri"));
+  nvs_handle_t nvs_handle;
+  ESP_ERROR_CHECK(nvs_open(NVS_NAMESPACE, NVS_READWRITE, &nvs_handle));
+  ESP_LOGI(TAG, "URI: %s", get_nvs_value(nvs_handle, "mqtt_uri"));
 
   const esp_mqtt_client_config_t mqtt_cfg = {
       .uri = (const char *)get_nvs_value(nvs_handle, "mqtt_uri"),
@@ -99,8 +99,9 @@ esp_err_t mqtt_connect_with_nvs(mqtt_message_receiver_callback _message_callback
       .client_key_pem = (const char *)get_nvs_value(nvs_handle, "mqtt_priv"),
       .cert_pem = (const char *)get_nvs_value(nvs_handle, "mqtt_root_ca"),
   };
-  strlcpy(topic, (const char *)get_nvs_value(nvs_handle, "mqtt_topic"), sizeof(topic));
 
+  strlcpy(topic, (const char *)get_nvs_value(nvs_handle, "mqtt_topic"), sizeof(topic));
+  nvs_close(nvs_handle);
   client = esp_mqtt_client_init(&mqtt_cfg);
 
   /* The last argument may be used to pass data to the event handler, in this example mqtt_event_handler */
