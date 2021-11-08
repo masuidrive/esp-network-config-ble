@@ -1,27 +1,16 @@
-#include <stdint.h>
-#include <stdio.h>
-#include <string.h>
-
-#include "esp-nimble-nordic-uart.h"
-#include "esp-smartconfig-ble.h"
-#include "esp_log.h"
-#include "esp_netif.h"
-#include "esp_wifi.h"
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
+#include "esp-smartconfig-ble-internal.h"
+static const char *TAG = "LIST_SSID";
 
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 
 #define MAX_SSID_COUNT 64
 #define LINE_LENGTH 65
 
-static const char *TAG = "LIST_SSID";
-
 void command_LIST_SSID(int argc, const char *args[], int datac, const char *data[]) {
   ESP_LOGI(TAG, "command_LIST_SSID");
   const wifi_scan_config_t scanConf = {
       .ssid = NULL, .bssid = NULL, .channel = 0, .show_hidden = true, .scan_type = WIFI_SCAN_TYPE_ACTIVE};
-  ESP_ERROR_CHECK(esp_wifi_scan_start(&scanConf, true));
+  CATCH_ESP_FAIL(esp_wifi_scan_start(&scanConf, true), "esp_wifi_scan_start");
   char buf[LINE_LENGTH];
 
   uint16_t ap_count = 0;
@@ -33,7 +22,7 @@ void command_LIST_SSID(int argc, const char *args[], int datac, const char *data
 
   uint16_t ap_record_count = MIN((uint16_t)MAX_SSID_COUNT, ap_count);
   wifi_ap_record_t ap_record_list[MAX_SSID_COUNT];
-  ESP_ERROR_CHECK(esp_wifi_scan_get_ap_records(&ap_record_count, ap_record_list));
+  CATCH_ESP_FAIL(esp_wifi_scan_get_ap_records(&ap_record_count, ap_record_list), "esp_wifi_scan_get_ap_records");
   ESP_LOGI(TAG, "ap_record_count = %d", ap_record_count);
 
   for (int i = 0; i < ap_record_count; i++) {
@@ -44,4 +33,8 @@ void command_LIST_SSID(int argc, const char *args[], int datac, const char *data
     nordic_uart_sendln(buf);
   }
   nordic_uart_sendln("");
+  return;
+
+esp_failed:
+  SEND_ESP_ERROR();
 }

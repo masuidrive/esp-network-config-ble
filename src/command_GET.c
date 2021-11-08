@@ -5,8 +5,7 @@ static const char *TAG = "GET";
 
 void command_GET_STR(int argc, const char *args[], int datac, const char *data[]) {
   if (argc != 1) {
-    nordic_uart_sendln("ERROR: ignore command format");
-    nordic_uart_sendln("");
+    SEND_RESULT("ERROR: ignore command format");
     return;
   }
 
@@ -14,13 +13,18 @@ void command_GET_STR(int argc, const char *args[], int datac, const char *data[]
   ESP_ERROR_CHECK(nvs_open(NVS_NAMESPACE, NVS_READWRITE, &nvs_handle));
 
   size_t required_size;
-  ESP_ERROR_CHECK(nvs_get_str(nvs_handle, args[0], NULL, &required_size));
-  char *value = malloc(required_size);
-  ESP_ERROR_CHECK(nvs_get_str(nvs_handle, args[0], value, &required_size));
+  char *value = NULL;
+  CATCH_ESP_FAIL(nvs_get_str(nvs_handle, args[0], NULL, &required_size), "nvs_get_str");
+  value = malloc(required_size);
+  CATCH_ESP_FAIL(nvs_get_str(nvs_handle, args[0], value, &required_size), "nvs_get_str");
   nvs_close(nvs_handle);
   nordic_uart_sendln(value);
-
   free(value);
-  nordic_uart_sendln("OK");
-  nordic_uart_sendln("");
+
+  SEND_OK();
+  return;
+
+esp_failed:
+  free(value);
+  SEND_ESP_ERROR();
 }
