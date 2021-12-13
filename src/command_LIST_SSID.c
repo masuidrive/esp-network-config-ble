@@ -32,6 +32,7 @@ void command_LIST_SSID(int argc, const char *args[], int datac, const char *data
     snprintf(buf, LINE_LENGTH, "%d,%d,%s", ap->authmode, ap->rssi, (const char *)ap->ssid);
     nordic_uart_sendln(buf);
   }
+  nordic_uart_sendln("OK");
   nordic_uart_sendln("");
   return;
 

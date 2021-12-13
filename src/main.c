@@ -27,6 +27,7 @@ const struct BLECommand default_commands[] = {
 static struct BLECommand **original_commands = NULL;
 static void (*smart_config_callback)(enum smart_config_callback_type) = NULL;
 const char *esp_fail_err_msg = NULL;
+esp_err_t esp_fail_err_code;
 
 static void run_command(const struct BLECommand *command, char *item) {
   char *args[MAX_COMMAND_ARGC];
@@ -40,26 +41,35 @@ static void run_command(const struct BLECommand *command, char *item) {
   }
 
   if (command->multiline) {
-    int datac = 0;
     char *data[CONFIG_NORDIC_UART_MAX_LINE_LENGTH];
 
-    while (true) {
-      size_t dataline_size;
+    size_t dataline_size;
+    char *dataline = (char *)xRingbufferReceive(nordic_uart_rx_buf_handle, &dataline_size, portMAX_DELAY);
+
+    int line_count = atoi(dataline);
+    vRingbufferReturnItem(nordic_uart_rx_buf_handle, (void *)dataline);
+
+    ESP_LOGI(TAG, "line_count=%d", line_count);
+
+    if (line_count >= CONFIG_NORDIC_UART_MAX_LINE_LENGTH) {
+      ESP_LOGE(TAG, "over lines");
+      nordic_uart_sendln("ERROR");
+      nordic_uart_sendln("");
+      return;
+    }
+
+    for (int i = 0; i < line_count; ++i) {
       char *dataline = (char *)xRingbufferReceive(nordic_uart_rx_buf_handle, &dataline_size, portMAX_DELAY);
       size_t dataline_len = strlen(dataline);
-      if (dataline_size <= 1)
-        break;
-      if (datac >= CONFIG_NORDIC_UART_MAX_LINE_LENGTH - 1) {
-        ESP_LOGE(TAG, "over lines");
-      } else {
-        data[datac] = malloc(dataline_size);
-        strcpy(data[datac++], dataline);
-      }
+
+      data[i] = malloc(dataline_len + 1);
+      strcpy(data[i], dataline);
+
       vRingbufferReturnItem(nordic_uart_rx_buf_handle, (void *)dataline);
     };
 
-    command->func(argc, (const char **)args, datac, (const char **)data);
-    for (int j = 0; j < datac; ++j)
+    command->func(argc, (const char **)args, line_count, (const char **)data);
+    for (int j = 0; j < line_count; ++j)
       free(data[j]);
   } else {
     command->func(argc, (const char **)args, 0, NULL);

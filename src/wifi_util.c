@@ -65,7 +65,7 @@ static esp_err_t wifi_setup(const char *ssid, const char *password) {
   strlcpy((char *)wifi_config.sta.password, password, sizeof(wifi_config.sta.password));
 
   CATCH_ESP_FAIL(esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_config), "esp_wifi_set_config");
-  CATCH_ESP_FAIL(esp_wifi_start(), "esp_wifi_set_config");
+  CATCH_ESP_FAIL(esp_wifi_start(), "esp_wifi_start");
 
   return ESP_OK;
 
@@ -88,7 +88,7 @@ esp_err_t wifi_connect(const char *ssid, const char *password, int _max_retry, w
   s_wifi_event_group = xEventGroupCreate();
 
   // init wifi config
-  CATCH_ESP_FAIL(wifi_setup(ssid, password), NULL);
+  CATCH_ESP_FAIL(wifi_setup(ssid, password), "wifi_setup");
 
   // wait wifi_event_handler task
   EventBits_t bits =
@@ -148,7 +148,7 @@ esp_err_t wifi_init() {
 
   wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
   CATCH_ESP_FAIL(esp_wifi_init(&cfg), "esp_wifi_init");
-  CATCH_ESP_FAIL(esp_wifi_set_storage(WIFI_STORAGE_RAM), "WIFI_STORAGE_RAM");
+  CATCH_ESP_FAIL(esp_wifi_set_storage(WIFI_STORAGE_FLASH), "WIFI_STORAGE_FLASH");
   CATCH_ESP_FAIL(esp_wifi_set_mode(WIFI_MODE_STA), "WIFI_MODE_STA");
 
   return ESP_OK;

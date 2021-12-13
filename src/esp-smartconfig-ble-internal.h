@@ -28,7 +28,8 @@
 
 // clang-format off
 extern const char* esp_fail_err_msg;
-#define CATCH_ESP_FAIL(cmd, msg) if((msg) != NULL) esp_fail_err_msg = (msg); if((cmd) != ESP_OK) goto esp_failed;
+extern esp_err_t esp_fail_err_code;
+#define CATCH_ESP_FAIL(cmd, msg) if((msg) != NULL) esp_fail_err_msg = (msg); if((cmd) != ESP_OK) { esp_fail_err_code = cmd; goto esp_failed; }
 
 #define ERROR_MESSAGE_LENGTH 256
 #define SEND_RESULT(result) { nordic_uart_sendln((result)); nordic_uart_sendln(""); }
@@ -40,5 +41,5 @@ extern const char* esp_fail_err_msg;
   nordic_uart_sendln(""); \
 }
 #define SEND_OK() SEND_RESULT("OK"); ESP_LOGI(TAG, "Send OK in %s", __FUNCTION__);
-#define SEND_ESP_ERROR() SEND_RESULT_FORMAT("ERROR %s %s", (TAG), esp_fail_err_msg); ESP_LOGI(TAG, "Send ERROR: %s in %s", esp_fail_err_msg, __FUNCTION__);
+#define SEND_ESP_ERROR() SEND_RESULT_FORMAT("ERROR %s %s", (TAG), esp_fail_err_msg); ESP_LOGI(TAG, "Send ERROR: %s (%x) in %s", esp_fail_err_msg, esp_fail_err_code, __FUNCTION__);
 

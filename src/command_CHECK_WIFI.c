@@ -2,7 +2,9 @@
 static const char *TAG = "CHECK_WIFI";
 
 void command_CHECK_WIFI(int argc, const char *args[], int datac, const char *data[]) {
-  CATCH_ESP_FAIL(wifi_connect_with_nvs(WIFI_TRY_CONNECT_RETRY, NULL) == ESP_OK, NULL);
+  ESP_LOGI(TAG, "command_CHECK_WIFI");
+
+  CATCH_ESP_FAIL(wifi_connect_with_nvs(WIFI_TRY_CONNECT_RETRY, NULL), NULL);
   SEND_OK();
   return;
 
