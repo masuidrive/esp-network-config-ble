@@ -21,6 +21,7 @@ idf_component_register(
     "src/command_CHECK_MQTT.c"
     "src/command_CHECK_WIFI.c"
     "src/command_ERASE.c"
+    "src/command_DEVICE_ID.c"
   REQUIRES
     bt
     esp-nimble-nordic-uart

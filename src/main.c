@@ -11,6 +11,7 @@ void command_SET_MULTI(int argc, const char *args[], int datac, const char *data
 void command_GET_STR(int argc, const char *args[], int datac, const char *data[]);
 void command_CHECK_MQTT(int argc, const char *args[], int datac, const char *data[]);
 void command_CHECK_WIFI(int argc, const char *args[], int datac, const char *data[]);
+void command_DEVICE_ID(int argc, const char *args[], int datac, const char *data[]);
 void command_ERASE(int argc, const char *args[], int datac, const char *data[]);
 
 const struct BLECommand default_commands[] = {
@@ -21,6 +22,7 @@ const struct BLECommand default_commands[] = {
     {.name = "LIST_SSID", .multiline = false, .func = command_LIST_SSID},
     {.name = "SET_WIFI", .multiline = false, .func = command_SET_WIFI},
     {.name = "CHECK_WIFI", .multiline = false, .func = command_CHECK_WIFI},
+    {.name = "DEVICE_ID", .multiline = false, .func = command_DEVICE_ID},
     {.name = "CHECK_MQTT", .multiline = false, .func = command_CHECK_MQTT},
 };
 
