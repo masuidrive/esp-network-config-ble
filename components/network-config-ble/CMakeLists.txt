@@ -8,6 +8,8 @@ idf_component_register(
     "esp32s3"
     "esp32c3"
   INCLUDE_DIRS
+    "include"
+  SRC_DIRS
     "src"
   SRCS
     "src/main.c"
@@ -24,9 +26,6 @@ idf_component_register(
     "src/command_DEVICE_ID.c"
   REQUIRES
     bt
-    esp-nimble-nordic-uart
     mqtt
-  PRIV_REQUIRES
-    ${ESP_NIMBLE_PRIV_REQUIRES}
+    nimble-nordic-uart
 )
-project(esp-smartconfig-ble)

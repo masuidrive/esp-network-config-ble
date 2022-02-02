@@ -130,7 +130,7 @@ esp_err_t smart_config_ble_start(const struct BLECommand *commands[],
   if (smart_config_callback)
     smart_config_callback(SMART_CONFIG_WAIT_BLE);
 
-  nordic_uart_start(nordic_uart_callback);
+  nordic_uart_start("Nordic UART", nordic_uart_callback);
   xTaskCreate(uartIncomingTask, "uartIncomingTask", 8192 * 2, NULL, 1, NULL);
   return ESP_OK;
 

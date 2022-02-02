@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.5)
 
-set (EXTRA_COMPONENT_DIRS ..)
-include($ENV{IDF_PATH}/tools/cmake/project.cmake)
+# Include the components directory of the main application:
+set(EXTRA_COMPONENT_DIRS "../components")
 
-project(app)
+include($ENV{IDF_PATH}/tools/cmake/project.cmake)
+project(example-nimble-nordic-uart)

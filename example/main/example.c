@@ -1,9 +1,9 @@
 #include <stdint.h>
 #include <stdio.h>
 
-#include "esp-nimble-nordic-uart.h"
 #include "esp-smartconfig-ble.h"
 #include "esp_log.h"
+#include "nimble-nordic-uart.h"
 
 void command_DEBUG(int argc, const char *args[], int datac, const char *data[]);
 
@@ -14,10 +14,10 @@ struct BLECommand *extend_commands[] = {
     NULL,
 };
 
-void app_main(void) { smart_config_ble_start(extend_commands); }
+void app_main() { smart_config_ble_start(extend_commands, NULL); }
 
 void command_DEBUG(int argc, const char *args[], int datac, const char *data[]) {
-  char buf[CONFIG_NORDIC_UART_MAX_LINE_LENGTH];
+  char buf[CONFIG_NORDIC_UART_MAX_LINE_LENGTH + 1];
   sprintf(buf, "argc=%d, datac=%d", argc, datac);
   puts(buf);
   nordic_uart_sendln(buf);

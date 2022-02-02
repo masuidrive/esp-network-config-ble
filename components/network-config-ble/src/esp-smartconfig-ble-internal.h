@@ -1,7 +1,7 @@
 #pragma once
-#include "esp-nimble-nordic-uart.h"
 #include "esp-smartconfig-ble.h"
 #include "mqtt_util.h"
+#include "nimble-nordic-uart.h"
 #include "tokenizer.h"
 #include "wifi_util.h"
 

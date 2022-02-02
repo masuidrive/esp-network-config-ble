@@ -1,6 +1,8 @@
 idf_component_register(
   SRCS
-    "example.c"
+    "test_nimble.c"
+    "test_buffer.c"
   REQUIRES
+    unity
     nimble-nordic-uart
 )
