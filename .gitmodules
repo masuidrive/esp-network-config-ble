@@ -1,0 +1,3 @@
+[submodule "example/components/esp-nimble-nordic-uart"]
+	path = example/components/esp-nimble-nordic-uart
+	url = https://github.com/masuidrive/esp-nimble-nordic-uart.git
