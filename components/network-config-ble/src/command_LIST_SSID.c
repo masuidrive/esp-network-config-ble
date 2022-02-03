@@ -31,8 +31,7 @@ void _ncb_command_LIST_SSID(int argc, const char *args[], int datac, const char 
     snprintf(buf, LINE_LENGTH, "%d,%d,%s", ap->authmode, ap->rssi, (const char *)ap->ssid);
     nordic_uart_sendln(buf);
   }
-  nordic_uart_sendln("OK");
-  nordic_uart_sendln("");
+  SEND_OK();
   return;
 
 esp_failed:

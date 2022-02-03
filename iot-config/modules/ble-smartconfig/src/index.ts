@@ -96,7 +96,7 @@ export class BLESmartConfig {
       }
     }
     this.state.moveTo(State.Connected);
-
+    result.pop();
     return result;
   }
 
@@ -133,7 +133,7 @@ export class BLESmartConfig {
 
   async check_awsiot(): Promise<boolean> {
     this.uart.clear();
-    await this.uart.sendln("CHECK_AWSIOT");
+    await this.uart.sendln("CHECK_MQTT");
 
     const result = await this.uart.readline();
     await this.uart.waitBlank();
@@ -148,14 +148,11 @@ export class BLESmartConfig {
   }
 
   async send_text_multiline(key: string, value: string): Promise<boolean> {
-    await this.uart.sendln(`SET_MULTI ${key}`);
-
     const lines = value.replaceAll(/\r/g, "").replace(/\n+$/, "").split(/\n+/);
+    await this.uart.sendln(`SET_MULTI ${key} ${lines.length}`);
     for (const line of lines) {
       await this.uart.sendln(line);
     }
-
-    await this.uart.sendln("");
     const result = await this.uart.readline();
 
     await this.uart.waitBlank();

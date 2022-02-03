@@ -36,10 +36,8 @@ static void run_command(const struct BLECommand *command, char *item) {
     char *data[CONFIG_NORDIC_UART_MAX_LINE_LENGTH];
 
     size_t dataline_size;
-    char *dataline = (char *)xRingbufferReceive(nordic_uart_rx_buf_handle, &dataline_size, portMAX_DELAY);
-
-    int line_count = atoi(dataline);
-    vRingbufferReturnItem(nordic_uart_rx_buf_handle, (void *)dataline);
+    int line_count = atoi(args[--argc]);
+    args[argc] = NULL;
 
     ESP_LOGI(TAG, "line_count=%d", line_count);
 

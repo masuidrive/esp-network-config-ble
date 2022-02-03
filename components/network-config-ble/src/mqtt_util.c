@@ -117,7 +117,7 @@ esp_err_t ncb_mqtt_publish(const char *message) {
 }
 
 esp_err_t ncb_mqtt_disconnect() {
-  if (esp_mqtt_client_disconnect(_client) == ESP_OK) {
+  if (esp_mqtt_client_stop(_client) == ESP_OK) {
     _client = NULL;
     return ESP_OK;
   } else {

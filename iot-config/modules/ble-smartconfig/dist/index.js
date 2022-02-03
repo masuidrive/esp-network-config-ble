@@ -134,6 +134,7 @@ var BLESmartConfig = /** @class */ (function () {
                         return [3 /*break*/, 2];
                     case 4:
                         this.state.moveTo(exports.State.Connected);
+                        result.pop();
                         return [2 /*return*/, result];
                 }
             });
@@ -217,7 +218,7 @@ var BLESmartConfig = /** @class */ (function () {
                 switch (_a.label) {
                     case 0:
                         this.uart.clear();
-                        return [4 /*yield*/, this.uart.sendln("CHECK_AWSIOT")];
+                        return [4 /*yield*/, this.uart.sendln("CHECK_MQTT")];
                     case 1:
                         _a.sent();
                         return [4 /*yield*/, this.uart.readline()];
@@ -255,10 +256,11 @@ var BLESmartConfig = /** @class */ (function () {
             var lines, _i, lines_1, line, result;
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: return [4 /*yield*/, this.uart.sendln("SET_MULTI " + key)];
+                    case 0:
+                        lines = value.replaceAll(/\r/g, "").replace(/\n+$/, "").split(/\n+/);
+                        return [4 /*yield*/, this.uart.sendln("SET_MULTI " + key + " " + lines.length)];
                     case 1:
                         _a.sent();
-                        lines = value.replaceAll(/\r/g, "").replace(/\n+$/, "").split(/\n+/);
                         _i = 0, lines_1 = lines;
                         _a.label = 2;
                     case 2:
@@ -271,14 +273,11 @@ var BLESmartConfig = /** @class */ (function () {
                     case 4:
                         _i++;
                         return [3 /*break*/, 2];
-                    case 5: return [4 /*yield*/, this.uart.sendln("")];
+                    case 5: return [4 /*yield*/, this.uart.readline()];
                     case 6:
-                        _a.sent();
-                        return [4 /*yield*/, this.uart.readline()];
-                    case 7:
                         result = _a.sent();
                         return [4 /*yield*/, this.uart.waitBlank()];
-                    case 8:
+                    case 7:
                         _a.sent();
                         return [2 /*return*/, !!result.match(/^OK/)];
                 }

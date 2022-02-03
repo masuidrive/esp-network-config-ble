@@ -9,7 +9,7 @@ static esp_event_handler_instance_t instance_any_id = NULL;
 static esp_event_handler_instance_t instance_got_ip = NULL;
 static ncb_wifi_status_callback status_callback = NULL;
 static int max_retry = 0;
-static int s_retry_num = 0;
+static int s_retry_num = -2;
 static bool is_connected = false;
 
 static void _wifi_event_handler(void *arg, esp_event_base_t event_base, int32_t event_id, void *event_data) {
@@ -20,7 +20,7 @@ static void _wifi_event_handler(void *arg, esp_event_base_t event_base, int32_t 
       is_connected = false;
       ESP_LOGI(TAG, "connect to the AP fail");
 
-      if (s_retry_num < max_retry || max_retry < 0) {
+      if (s_retry_num < max_retry || max_retry == -2) {
         if (status_callback)
           status_callback(WIFI_RECONNECTING);
         esp_wifi_connect();
@@ -161,7 +161,7 @@ esp_failed:
 
 esp_err_t ncb_wifi_disconnect() {
   esp_wifi_stop();
-  max_retry = 0;
+  max_retry = -2;
   return ESP_OK;
 }
 
