@@ -1,3 +1,0 @@
-[submodule "example/components/esp-nimble-uart"]
-	path = example/components/esp-nimble-uart
-	url = https://github.com/masuidrive/esp-nimble-uart
