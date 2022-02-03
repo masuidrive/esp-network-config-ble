@@ -1,42 +1,32 @@
-#include "esp-smartconfig-ble-internal.h"
+#include "network-config-ble-internal.h"
 static const char *TAG = "SmartConfig";
 
 #define MAX_COMMAND_ARGC 8
 #define MAX_DATA_LINES 64
 
-void command_LIST_SSID(int argc, const char *args[], int datac, const char *data[]);
-void command_SET_WIFI(int argc, const char *args[], int datac, const char *data[]);
-void command_SET_STR(int argc, const char *args[], int datac, const char *data[]);
-void command_SET_MULTI(int argc, const char *args[], int datac, const char *data[]);
-void command_GET_STR(int argc, const char *args[], int datac, const char *data[]);
-void command_CHECK_MQTT(int argc, const char *args[], int datac, const char *data[]);
-void command_CHECK_WIFI(int argc, const char *args[], int datac, const char *data[]);
-void command_DEVICE_ID(int argc, const char *args[], int datac, const char *data[]);
-void command_ERASE(int argc, const char *args[], int datac, const char *data[]);
-
-const struct BLECommand default_commands[] = {
-    {.name = "GET_STR", .multiline = false, .func = command_GET_STR},
-    {.name = "SET_STR", .multiline = false, .func = command_SET_STR},
-    {.name = "SET_MULTI", .multiline = true, .func = command_SET_MULTI},
-    {.name = "ERASE", .multiline = false, .func = command_ERASE},
-    {.name = "LIST_SSID", .multiline = false, .func = command_LIST_SSID},
-    {.name = "SET_WIFI", .multiline = false, .func = command_SET_WIFI},
-    {.name = "CHECK_WIFI", .multiline = false, .func = command_CHECK_WIFI},
-    {.name = "DEVICE_ID", .multiline = false, .func = command_DEVICE_ID},
-    {.name = "CHECK_MQTT", .multiline = false, .func = command_CHECK_MQTT},
+static const struct BLECommand default_commands[] = {
+    {.name = "GET_STR", .multiline = false, .func = _ncb_command_GET_STR},
+    {.name = "SET_STR", .multiline = false, .func = _ncb_command_SET_STR},
+    {.name = "SET_MULTI", .multiline = true, .func = _ncb_command_SET_MULTI},
+    {.name = "ERASE", .multiline = false, .func = _ncb_command_ERASE},
+    {.name = "LIST_SSID", .multiline = false, .func = _ncb_command_LIST_SSID},
+    {.name = "SET_WIFI", .multiline = false, .func = _ncb_command_SET_WIFI},
+    {.name = "CHECK_WIFI", .multiline = false, .func = _ncb_command_CHECK_WIFI},
+    {.name = "DEVICE_ID", .multiline = false, .func = _ncb_command_DEVICE_ID},
+    {.name = "CHECK_MQTT", .multiline = false, .func = _ncb_command_CHECK_MQTT},
 };
 
 static struct BLECommand **original_commands = NULL;
 static void (*smart_config_callback)(enum smart_config_callback_type) = NULL;
-const char *esp_fail_err_msg = NULL;
-esp_err_t esp_fail_err_code;
+const char *ncb_esp_fail_err_msg = NULL;
+esp_err_t ncb_esp_fail_err_code;
 
 static void run_command(const struct BLECommand *command, char *item) {
   char *args[MAX_COMMAND_ARGC];
   int argc = 0;
 
   while (item && argc < MAX_COMMAND_ARGC) {
-    item = get_token(item, &args[argc]);
+    item = _ncb_get_token(item, &args[argc]);
     if (args[argc] == NULL)
       break;
     ++argc;
@@ -87,7 +77,7 @@ static void uartIncomingTask(void *parameter) {
       ESP_LOGI(TAG, "LINE: %s", line);
 
       char *command_name;
-      char *item = get_token(line, &command_name);
+      char *item = _ncb_get_token(line, &command_name);
 
       if (command_name) {
         if (original_commands) {
@@ -114,26 +104,31 @@ static void uartIncomingTask(void *parameter) {
 }
 
 static void nordic_uart_callback(enum nordic_uart_callback_type callback_type) {
-  if (callback_type == NORDIC_UART_DISCONNECTED) {
-    smart_config_callback(SMART_CONFIG_WAIT_BLE);
-  } else if (callback_type == NORDIC_UART_CONNECTED) {
-    smart_config_callback(SMART_CONFIG_READY_TO_CONFIG);
+  if (smart_config_callback) {
+    if (callback_type == NORDIC_UART_DISCONNECTED) {
+      smart_config_callback(SMART_CONFIG_WAIT_BLE);
+    } else if (callback_type == NORDIC_UART_CONNECTED) {
+      smart_config_callback(SMART_CONFIG_READY_TO_CONFIG);
+    }
   }
 }
 
-esp_err_t smart_config_ble_start(const struct BLECommand *commands[],
-                                 void (*callback)(enum smart_config_callback_type)) {
+esp_err_t ncb_config_start(const struct BLECommand *commands[], void (*callback)(enum smart_config_callback_type)) {
   original_commands = commands;
   smart_config_callback = callback;
+  CATCH_ESP_FAIL(ncb_wifi_init(), "ncb_wifi_init");
   CATCH_ESP_FAIL(esp_wifi_start(), "esp_wifi_start");
 
   if (smart_config_callback)
     smart_config_callback(SMART_CONFIG_WAIT_BLE);
 
   nordic_uart_start("Nordic UART", nordic_uart_callback);
+
   xTaskCreate(uartIncomingTask, "uartIncomingTask", 8192 * 2, NULL, 1, NULL);
   return ESP_OK;
 
 esp_failed:
+  ESP_LOGE(TAG, "ncb_start> err %d, %s", ncb_esp_fail_err_code, ncb_esp_fail_err_msg);
+
   return ESP_FAIL;
 }

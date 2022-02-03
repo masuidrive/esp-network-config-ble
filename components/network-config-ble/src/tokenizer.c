@@ -1,4 +1,4 @@
-#include "esp-smartconfig-ble-internal.h"
+#include "network-config-ble-internal.h"
 
 #define is_skip_char(chr) (chr == '\r')
 #define is_escape_char(chr) (chr == '\\')
@@ -7,7 +7,7 @@
 #define is_separator(chr) (chr == ' ' || chr == '\n')
 #define is_separator_or_null(chr) (is_separator(chr) || is_end_of_string(chr))
 
-char *get_token(char *text, char **token) {
+char *_ncb_get_token(char *text, char **token) {
   // skip head spaces
   while (is_separator(*text))
     ++text;

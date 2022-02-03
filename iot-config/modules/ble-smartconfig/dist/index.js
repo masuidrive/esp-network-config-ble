@@ -187,26 +187,23 @@ var BLESmartConfig = /** @class */ (function () {
                 switch (_a.label) {
                     case 0:
                         this.uart.clear();
-                        return [4 /*yield*/, this.send_text("mqtt_host", config.mqtt_host)];
+                        return [4 /*yield*/, this.send_text("mqtt_uri", config.mqtt_uri)];
                     case 1:
                         _a.sent();
-                        return [4 /*yield*/, this.send_text("mqtt_port", config.mqtt_port)];
+                        return [4 /*yield*/, this.send_text("mqtt_topic", config.mqtt_topic)];
                     case 2:
                         _a.sent();
-                        return [4 /*yield*/, this.send_text("mqtt_topic", config.mqtt_topic)];
+                        return [4 /*yield*/, this.send_text_multiline("iot_root_ca", config.root_ca)];
                     case 3:
                         _a.sent();
-                        return [4 /*yield*/, this.send_text_multiline("iot_root_ca", config.root_ca)];
+                        return [4 /*yield*/, this.send_text_multiline("iot_cert", config.cert)];
                     case 4:
                         _a.sent();
-                        return [4 /*yield*/, this.send_text_multiline("iot_cert", config.cert)];
+                        return [4 /*yield*/, this.send_text_multiline("iot_priv", config.priv)];
                     case 5:
                         _a.sent();
-                        return [4 /*yield*/, this.send_text_multiline("iot_priv", config.priv)];
-                    case 6:
-                        _a.sent();
                         return [4 /*yield*/, this.send_text("iot_client_id", config.client_id)];
-                    case 7:
+                    case 6:
                         _a.sent();
                         return [2 /*return*/, true]; // TODO
                 }

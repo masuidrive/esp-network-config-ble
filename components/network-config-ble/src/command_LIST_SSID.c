@@ -1,13 +1,12 @@
-#include "esp-smartconfig-ble-internal.h"
-static const char *TAG = "LIST_SSID";
+#include "network-config-ble-internal.h"
+static const char *TAG = "NCB_LIST_SSID";
 
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 
 #define MAX_SSID_COUNT 64
 #define LINE_LENGTH 65
 
-void command_LIST_SSID(int argc, const char *args[], int datac, const char *data[]) {
-  ESP_LOGI(TAG, "command_LIST_SSID");
+void _ncb_command_LIST_SSID(int argc, const char *args[], int datac, const char *data[]) {
   const wifi_scan_config_t scanConf = {
       .ssid = NULL, .bssid = NULL, .channel = 0, .show_hidden = true, .scan_type = WIFI_SCAN_TYPE_ACTIVE};
   CATCH_ESP_FAIL(esp_wifi_scan_start(&scanConf, true), "esp_wifi_scan_start");

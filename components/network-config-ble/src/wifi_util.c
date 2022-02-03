@@ -1,5 +1,5 @@
-#include "esp-smartconfig-ble-internal.h"
-static const char *TAG = "WIFI";
+#include "network-config-ble-internal.h"
+static const char *TAG = "NCB WIFI";
 
 #define WIFI_CONNECTED_BIT BIT0
 #define WIFI_FAILED_BIT BIT1
@@ -7,12 +7,12 @@ static const char *TAG = "WIFI";
 static EventGroupHandle_t s_wifi_event_group = NULL;
 static esp_event_handler_instance_t instance_any_id = NULL;
 static esp_event_handler_instance_t instance_got_ip = NULL;
-static wifi_status_callback status_callback = NULL;
-static int max_retry = -1;
+static ncb_wifi_status_callback status_callback = NULL;
+static int max_retry = 0;
 static int s_retry_num = 0;
 static bool is_connected = false;
 
-static void wifi_event_handler(void *arg, esp_event_base_t event_base, int32_t event_id, void *event_data) {
+static void _wifi_event_handler(void *arg, esp_event_base_t event_base, int32_t event_id, void *event_data) {
   if (event_base == WIFI_EVENT) {
     if (event_id == WIFI_EVENT_STA_START) {
       esp_wifi_connect();
@@ -46,7 +46,7 @@ static void wifi_event_handler(void *arg, esp_event_base_t event_base, int32_t e
   return;
 }
 
-static esp_err_t wifi_setup(const char *ssid, const char *password) {
+static esp_err_t _wifi_setup(const char *ssid, const char *password) {
   wifi_config_t wifi_config = {
       .sta =
           {
@@ -73,7 +73,8 @@ esp_failed:
   return ESP_FAIL;
 }
 
-esp_err_t wifi_connect(const char *ssid, const char *password, int _max_retry, wifi_status_callback _status_callback) {
+esp_err_t ncb_wifi_connect(const char *ssid, const char *password, int _max_retry,
+                           ncb_wifi_status_callback _status_callback) {
   max_retry = _max_retry;
   status_callback = _status_callback;
   s_retry_num = 0;
@@ -88,7 +89,7 @@ esp_err_t wifi_connect(const char *ssid, const char *password, int _max_retry, w
   s_wifi_event_group = xEventGroupCreate();
 
   // init wifi config
-  CATCH_ESP_FAIL(wifi_setup(ssid, password), "wifi_setup");
+  CATCH_ESP_FAIL(_wifi_setup(ssid, password), "_wifi_setup");
 
   // wait wifi_event_handler task
   EventBits_t bits =
@@ -116,7 +117,7 @@ esp_failed:
   return ESP_FAIL;
 }
 
-esp_err_t wifi_connect_with_nvs(int max_retry, wifi_status_callback status_callback) {
+esp_err_t ncb_wifi_connect_with_nvs(int max_retry, ncb_wifi_status_callback status_callback) {
   nvs_handle_t nvs_handle;
   CATCH_ESP_FAIL(nvs_open(NVS_NAMESPACE, NVS_READONLY, &nvs_handle), "nvs_open");
 
@@ -128,22 +129,23 @@ esp_err_t wifi_connect_with_nvs(int max_retry, wifi_status_callback status_callb
 
   nvs_close(nvs_handle);
 
-  return wifi_connect(ssid, password, max_retry, status_callback);
+  return ncb_wifi_connect(ssid, password, max_retry, status_callback);
 
 esp_failed:
   nvs_close(nvs_handle);
   return ESP_ERR_NOT_FOUND; // NVS config not found
 }
 
-esp_err_t wifi_init() {
+esp_err_t ncb_wifi_init() {
+  CATCH_ESP_FAIL(nvs_flash_init(), "nvs_flash_init");
   CATCH_ESP_FAIL(esp_netif_init(), "esp_netif_init");
   esp_netif_create_default_wifi_sta();
 
   CATCH_ESP_FAIL(
-      esp_event_handler_instance_register(WIFI_EVENT, ESP_EVENT_ANY_ID, &wifi_event_handler, NULL, &instance_any_id),
+      esp_event_handler_instance_register(WIFI_EVENT, ESP_EVENT_ANY_ID, &_wifi_event_handler, NULL, &instance_any_id),
       "register WIFI_EVENT");
   CATCH_ESP_FAIL(
-      esp_event_handler_instance_register(IP_EVENT, ESP_EVENT_ANY_ID, &wifi_event_handler, NULL, &instance_got_ip),
+      esp_event_handler_instance_register(IP_EVENT, ESP_EVENT_ANY_ID, &_wifi_event_handler, NULL, &instance_got_ip),
       "register IP_EVENT");
 
   wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
@@ -157,9 +159,10 @@ esp_failed:
   return ESP_FAIL;
 }
 
-esp_err_t wifi_disconnect() {
+esp_err_t ncb_wifi_disconnect() {
   esp_wifi_stop();
+  max_retry = 0;
   return ESP_OK;
 }
 
-bool wifi_is_connected() { return is_connected; }
+bool ncb_wifi_is_connected() { return is_connected; }

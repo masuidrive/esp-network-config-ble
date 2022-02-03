@@ -1,9 +1,9 @@
-#include "esp-smartconfig-ble-internal.h"
-static const char *TAG = "SET";
+#include "network-config-ble-internal.h"
+static const char *TAG = "NCB_SET";
 
 #define VALUE_SIZE 4000
 
-void command_SET_STR(int argc, const char *args[], int datac, const char *data[]) {
+void _ncb_command_SET_STR(int argc, const char *args[], int datac, const char *data[]) {
   if (argc == 2) {
     nvs_handle_t nvs_handle;
     ESP_ERROR_CHECK(nvs_open(NVS_NAMESPACE, NVS_READWRITE, &nvs_handle));
@@ -16,7 +16,7 @@ void command_SET_STR(int argc, const char *args[], int datac, const char *data[]
   }
 }
 
-void command_SET_MULTI(int argc, const char *args[], int datac, const char *data[]) {
+void _ncb_command_SET_MULTI(int argc, const char *args[], int datac, const char *data[]) {
   if (argc != 1) {
     nordic_uart_sendln("Error: ignore command format");
     return;

@@ -1,14 +1,18 @@
-#include "esp-smartconfig-ble-internal.h"
-static const char *TAG = "CHECK_MQTT";
+#include "network-config-ble-internal.h"
+static const char *TAG = "NCB_CHECK_MQTT";
 
-void command_CHECK_MQTT(int argc, const char *args[], int datac, const char *data[]) {
-  CATCH_ESP_FAIL(wifi_connect_with_nvs(WIFI_TRY_CONNECT_RETRY, NULL), "wifi_connect_with_nvs");
-  CATCH_ESP_FAIL(mqtt_connect_with_nvs(NULL, NULL), "mqtt_connect_with_nvs");
-  mqtt_disconnect();
+void _ncb_command_CHECK_MQTT(int argc, const char *args[], int datac, const char *data[]) {
+  ncb_mqtt_disconnect();
+  ncb_wifi_disconnect();
+  CATCH_ESP_FAIL(ncb_wifi_connect_with_nvs(WIFI_TRY_CONNECT_RETRY, NULL), "ncb_wifi_connect_with_nvs");
+  CATCH_ESP_FAIL(ncb_mqtt_connect_with_nvs(NULL, NULL), "ncb_mqtt_connect_with_nvs");
+  ncb_mqtt_disconnect();
+  ncb_wifi_disconnect();
   SEND_OK();
   return;
 
 esp_failed:
-  mqtt_disconnect();
+  ncb_mqtt_disconnect();
+  ncb_wifi_disconnect();
   SEND_ESP_ERROR();
 }

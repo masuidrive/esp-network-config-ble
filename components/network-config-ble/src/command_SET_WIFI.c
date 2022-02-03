@@ -1,7 +1,7 @@
-#include "esp-smartconfig-ble-internal.h"
-static const char *TAG = "SETWIFI";
+#include "network-config-ble-internal.h"
+static const char *TAG = "NCB_SETWIFI";
 
-void command_SET_WIFI(int argc, const char *args[], int datac, const char *data[]) {
+void _ncb_command_SET_WIFI(int argc, const char *args[], int datac, const char *data[]) {
   if (argc < 1) {
     nordic_uart_sendln("ERROR \"SSID is blank\"");
     return;
@@ -10,7 +10,7 @@ void command_SET_WIFI(int argc, const char *args[], int datac, const char *data[
   const char *ssid = args[0];
   const char *password = argc < 2 ? "" : args[1];
 
-  if (wifi_connect(ssid, password, 5, NULL) == ESP_OK) {
+  if (ncb_wifi_connect(ssid, password, 5, NULL) == ESP_OK) {
     // save wifi config
     nvs_handle_t nvs_handle;
     ESP_ERROR_CHECK(nvs_open(NVS_NAMESPACE, NVS_READWRITE, &nvs_handle));

@@ -1,9 +1,9 @@
-#include "esp-smartconfig-ble-internal.h"
-static const char *TAG = "GET";
+#include "network-config-ble-internal.h"
+static const char *TAG = "NCB_GET";
 
 #define VALUE_SIZE 4000
 
-void command_GET_STR(int argc, const char *args[], int datac, const char *data[]) {
+void _ncb_command_GET_STR(int argc, const char *args[], int datac, const char *data[]) {
   if (argc != 1) {
     SEND_RESULT("ERROR: ignore command format");
     return;

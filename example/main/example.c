@@ -1,9 +1,10 @@
+#include "esp_log.h"
+#include "network-config-ble.h"
+#include "nimble-nordic-uart.h"
+
+#include <esp_event.h>
 #include <stdint.h>
 #include <stdio.h>
-
-#include "esp-smartconfig-ble.h"
-#include "esp_log.h"
-#include "nimble-nordic-uart.h"
 
 void command_DEBUG(int argc, const char *args[], int datac, const char *data[]);
 
@@ -14,7 +15,10 @@ struct BLECommand *extend_commands[] = {
     NULL,
 };
 
-void app_main() { smart_config_ble_start(extend_commands, NULL); }
+void app_main() { //
+  ESP_ERROR_CHECK(esp_event_loop_create_default());
+  ncb_config_start(extend_commands, NULL);
+}
 
 void command_DEBUG(int argc, const char *args[], int datac, const char *data[]) {
   char buf[CONFIG_NORDIC_UART_MAX_LINE_LENGTH + 1];
