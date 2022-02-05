@@ -1,5 +1,5 @@
 #include "network-config-ble-internal.h"
-static const char *TAG = "NCB_CHECK_MQTT";
+static const char *_TAG = "NCB_CHECK_MQTT";
 
 void _ncb_command_CHECK_MQTT(int argc, const char *args[], int datac, const char *data[]) {
   ncb_mqtt_disconnect();

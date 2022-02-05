@@ -1,5 +1,5 @@
 #include "network-config-ble-internal.h"
-static const char *TAG = "NCB_CHECK_WIFI";
+static const char *_TAG = "NCB_CHECK_WIFI";
 
 void _ncb_command_CHECK_WIFI(int argc, const char *args[], int datac, const char *data[]) {
   ncb_wifi_disconnect();

@@ -1,7 +1,7 @@
 #include "network-config-ble-internal.h"
-static const char *TAG = "NCB";
+static const char *_TAG = "NCB";
 
-#define _NCB_UART_COMMAND_ARGC 8
+#define _NCB_UART_COMMAND_MAX_ARGC 8
 
 static const struct ncb_command default_commands[] = {
     {.name = "GET_STR", .multiline = false, .func = _ncb_command_GET_STR},
@@ -17,17 +17,16 @@ static const struct ncb_command default_commands[] = {
 
 static struct ncb_command **_extend_commands = NULL;
 static void (*ncb_callback)(enum ncb_callback_type) = NULL;
-
 static TaskHandle_t _ncb_uart_task = NULL;
 
 const char *_ncb_esp_err_msg = NULL;
-esp_err_t _ncb_esp_err_code;
+esp_err_t _ncb_esp_err_code = ESP_OK;
 
 static void _run_command(const struct ncb_command *command, char *item) {
-  char *args[_NCB_UART_COMMAND_ARGC];
+  char *args[_NCB_UART_COMMAND_MAX_ARGC];
   int argc = 0;
 
-  while (item && argc < _NCB_UART_COMMAND_ARGC) {
+  while (item && argc < _NCB_UART_COMMAND_MAX_ARGC) {
     item = _ncb_get_token(item, &args[argc]);
     if (args[argc] == NULL)
       break;
@@ -42,9 +41,7 @@ static void _run_command(const struct ncb_command *command, char *item) {
     args[argc] = NULL;
 
     if (line_count >= CONFIG_NORDIC_UART_MAX_LINE_LENGTH) {
-      ESP_LOGE(TAG, "over lines");
-      nordic_uart_sendln("ERROR");
-      nordic_uart_sendln("");
+      _NCB_SEND_ERROR("over lines");
       return;
     }
 
@@ -72,7 +69,7 @@ static void _uart_incoming_task(void *parameter) {
     char *line = (char *)xRingbufferReceive(nordic_uart_rx_buf_handle, &item_size, portMAX_DELAY);
 
     if (line) {
-      ESP_LOGI(TAG, "LINE: %s", line);
+      ESP_LOGI(_TAG, "LINE: %s", line);
 
       char *command_name;
       char *item = _ncb_get_token(line, &command_name);

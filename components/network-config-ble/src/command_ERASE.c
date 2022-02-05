@@ -1,5 +1,5 @@
 #include "network-config-ble-internal.h"
-static const char *TAG = "NCB_ERASE";
+static const char *_TAG = "NCB_ERASE";
 
 void _ncb_command_ERASE_ALL(int argc, const char *args[], int datac, const char *data[]) {
   nvs_handle_t nvs_handle;

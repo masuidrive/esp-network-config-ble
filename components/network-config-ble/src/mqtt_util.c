@@ -1,5 +1,5 @@
 #include "network-config-ble-internal.h"
-static const char *TAG = "MQTT_UTIL";
+static const char *_TAG = "MQTT_UTIL";
 
 static ncb_mqtt_message_receiver_callback _message_callback = NULL;
 static ncb_mqtt_status_callback _status_callback = NULL;
@@ -23,40 +23,40 @@ esp_failed:
 
 static void _log_error_if_nonzero(const char *message, int error_code) {
   if (error_code != 0) {
-    ESP_LOGE(TAG, "Last error %s: 0x%x", message, error_code);
+    ESP_LOGE(_TAG, "Last error %s: 0x%x", message, error_code);
   }
 }
 
 static void _mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_t event_id, void *event_data) {
-  ESP_LOGD(TAG, "Event dispatched from event loop base=%s, event_id=%d", base, event_id);
+  ESP_LOGD(_TAG, "Event dispatched from event loop base=%s, event_id=%d", base, event_id);
   esp_mqtt_event_handle_t event = event_data;
   esp_mqtt_client_handle_t client = event->client;
 
   switch ((esp_mqtt_event_id_t)event_id) {
   case MQTT_EVENT_CONNECTED:
-    ESP_LOGI(TAG, "MQTT_EVENT_CONNECTED");
+    ESP_LOGI(_TAG, "MQTT_EVENT_CONNECTED");
     if (esp_mqtt_client_subscribe(client, _topic, 1) < 0) {
     }
     break;
 
   case MQTT_EVENT_DISCONNECTED:
-    ESP_LOGI(TAG, "MQTT_EVENT_DISCONNECTED");
+    ESP_LOGI(_TAG, "MQTT_EVENT_DISCONNECTED");
     if (_status_callback)
       _status_callback(MQTT_DISCONNECTED);
     break;
 
   case MQTT_EVENT_SUBSCRIBED:
-    ESP_LOGI(TAG, "MQTT_EVENT_SUBSCRIBED, msg_id=%d", event->msg_id);
+    ESP_LOGI(_TAG, "MQTT_EVENT_SUBSCRIBED, msg_id=%d", event->msg_id);
     if (_status_callback)
       _status_callback(MQTT_CONNECTED);
     break;
 
   case MQTT_EVENT_UNSUBSCRIBED:
-    ESP_LOGI(TAG, "MQTT_EVENT_UNSUBSCRIBED, msg_id=%d", event->msg_id);
+    ESP_LOGI(_TAG, "MQTT_EVENT_UNSUBSCRIBED, msg_id=%d", event->msg_id);
     break;
 
   case MQTT_EVENT_PUBLISHED:
-    // ESP_LOGI(TAG, "MQTT_EVENT_PUBLISHED, msg_id=%d", event->msg_id);
+    // ESP_LOGI(_TAG, "MQTT_EVENT_PUBLISHED, msg_id=%d", event->msg_id);
     break;
 
   case MQTT_EVENT_DATA:
@@ -65,17 +65,17 @@ static void _mqtt_event_handler(void *handler_args, esp_event_base_t base, int32
     break;
 
   case MQTT_EVENT_ERROR:
-    ESP_LOGI(TAG, "MQTT_EVENT_ERROR");
+    ESP_LOGI(_TAG, "MQTT_EVENT_ERROR");
     if (event->error_handle->error_type == MQTT_ERROR_TYPE_TCP_TRANSPORT) {
       _log_error_if_nonzero("reported from esp-tls", event->error_handle->esp_tls_last_esp_err);
       _log_error_if_nonzero("reported from tls stack", event->error_handle->esp_tls_stack_err);
       _log_error_if_nonzero("captured as transport's socket errno", event->error_handle->esp_transport_sock_errno);
-      ESP_LOGI(TAG, "Last errno string (%s)", strerror(event->error_handle->esp_transport_sock_errno));
+      ESP_LOGI(_TAG, "Last errno string (%s)", strerror(event->error_handle->esp_transport_sock_errno));
     }
     break;
 
   default:
-    ESP_LOGI(TAG, "Other event id:%d", event->event_id);
+    ESP_LOGI(_TAG, "Other event id:%d", event->event_id);
     break;
   }
 }

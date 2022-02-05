@@ -1,8 +1,8 @@
 #include "network-config-ble-internal.h"
-static const char *TAG = "NCB WIFI";
+static const char *_TAG = "NCB WIFI";
 
-#define WIFI_CONNECTED_BIT BIT0
-#define WIFI_FAILED_BIT BIT1
+#define _WIFI_CONNECTED_BIT BIT0
+#define _WIFI_FAILED_BIT BIT1
 static EventGroupHandle_t _wifi_event_group = NULL;
 
 static esp_event_handler_instance_t _instance_any_id = NULL;
@@ -17,29 +17,29 @@ static void _wifi_event_handler(void *arg, esp_event_base_t event_base, int32_t 
     if (event_id == WIFI_EVENT_STA_START) {
       esp_wifi_connect();
     } else if (event_id == WIFI_EVENT_STA_DISCONNECTED) {
-      ESP_LOGI(TAG, "connect to the AP fail: %d", _max_retry);
+      ESP_LOGI(_TAG, "connect to the AP fail: %d", _max_retry);
 
       if (_retry_num < _max_retry || _wifi_status == NCB_WIFI_CONNECTED || _wifi_status == NCB_WIFI_RECONNECTING) {
         if (_status_callback)
           _status_callback(_wifi_status = NCB_WIFI_RECONNECTING);
         esp_wifi_connect();
         _retry_num++;
-        ESP_LOGI(TAG, "retry to connect to the AP: %d / %d", _retry_num, _max_retry);
+        ESP_LOGI(_TAG, "retry to connect to the AP: %d / %d", _retry_num, _max_retry);
       } else {
         if (_status_callback)
           _status_callback(_wifi_status = NCB_WIFI_DISCONNECTED);
         if (_wifi_event_group)
-          xEventGroupSetBits(_wifi_event_group, WIFI_FAILED_BIT);
+          xEventGroupSetBits(_wifi_event_group, _WIFI_FAILED_BIT);
       }
     }
   } else if (event_base == IP_EVENT && event_id == IP_EVENT_STA_GOT_IP) {
     ip_event_got_ip_t *event = (ip_event_got_ip_t *)event_data;
-    ESP_LOGI(TAG, "got ip:" IPSTR, IP2STR(&event->ip_info.ip));
+    ESP_LOGI(_TAG, "got ip:" IPSTR, IP2STR(&event->ip_info.ip));
     _retry_num = 0;
     if (_status_callback)
       _status_callback(_wifi_status = NCB_WIFI_CONNECTED);
     if (_wifi_event_group)
-      xEventGroupSetBits(_wifi_event_group, WIFI_CONNECTED_BIT);
+      xEventGroupSetBits(_wifi_event_group, _WIFI_CONNECTED_BIT);
   }
 }
 
@@ -75,7 +75,7 @@ esp_err_t ncb_wifi_connect(const char *ssid, const char *password, int max_retry
   _max_retry = max_retry;
   _status_callback = status_callback;
   _retry_num = 0;
-  ESP_LOGI(TAG, "connect SSID: %s, %s", ssid, password);
+  ESP_LOGI(_TAG, "connect SSID: %s, %s", ssid, password);
 
   _NCB_CATCH_ESP_ERR(esp_wifi_stop(), "esp_wifi_stop");
 
@@ -90,20 +90,20 @@ esp_err_t ncb_wifi_connect(const char *ssid, const char *password, int max_retry
 
   // wait wifi_event_handler task
   EventBits_t bits =
-      xEventGroupWaitBits(_wifi_event_group, WIFI_CONNECTED_BIT | WIFI_FAILED_BIT, pdFALSE, pdFALSE, portMAX_DELAY);
+      xEventGroupWaitBits(_wifi_event_group, _WIFI_CONNECTED_BIT | _WIFI_FAILED_BIT, pdFALSE, pdFALSE, portMAX_DELAY);
 
   vEventGroupDelete(_wifi_event_group);
   _wifi_event_group = NULL;
 
-  if (bits & WIFI_CONNECTED_BIT) {
-    ESP_LOGI(TAG, "connected to ap SSID: %s", ssid);
+  if (bits & _WIFI_CONNECTED_BIT) {
+    ESP_LOGI(_TAG, "connected to ap SSID: %s", ssid);
     return ESP_OK;
-  } else if (bits & WIFI_FAILED_BIT) {
-    ESP_LOGI(TAG, "Failed to connect to SSID: %s", ssid);
+  } else if (bits & _WIFI_FAILED_BIT) {
+    ESP_LOGI(_TAG, "Failed to connect to SSID: %s", ssid);
     _NCB_CATCH_ESP_ERR(esp_wifi_stop(), "esp_wifi_stop");
     return ESP_FAIL;
   } else {
-    ESP_LOGE(TAG, "UNEXPECTED EVENT");
+    ESP_LOGE(_TAG, "UNEXPECTED EVENT");
     _NCB_CATCH_ESP_ERR(esp_wifi_stop(), "esp_wifi_stop");
     return ESP_FAIL;
   }
@@ -158,8 +158,6 @@ esp_failed:
 
 esp_err_t ncb_wifi_disconnect() {
   esp_wifi_stop();
-  _max_retry = -2;
-
   return ESP_OK;
 }
 
