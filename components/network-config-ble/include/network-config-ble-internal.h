@@ -24,9 +24,9 @@
 #define WIFI_TRY_CONNECT_RETRY 5 // Number of retries during connection test
 
 // clang-format off
-extern const char* ncb_esp_fail_err_msg;
-extern esp_err_t ncb_esp_fail_err_code;
-#define CATCH_ESP_FAIL(cmd, msg) if((msg) != NULL) ncb_esp_fail_err_msg = (msg); if((cmd) != ESP_OK) { ncb_esp_fail_err_code = cmd; goto esp_failed; }
+extern const char* _ncb_esp_fail_err_msg;
+extern esp_err_t _ncb_esp_fail_err_code;
+#define _CATCH_ESP_FAIL(cmd, msg) if((msg) != NULL) _ncb_esp_fail_err_msg = (msg); if((cmd) != ESP_OK) { _ncb_esp_fail_err_code = cmd; goto esp_failed; }
 
 #define ERROR_MESSAGE_LENGTH 256
 #define SEND_RESULT(result) { nordic_uart_sendln((result)); nordic_uart_sendln(""); }
@@ -38,15 +38,15 @@ extern esp_err_t ncb_esp_fail_err_code;
   nordic_uart_sendln(""); \
 }
 #define SEND_OK() SEND_RESULT("OK"); ESP_LOGI(TAG, "Send OK in %s", __FUNCTION__);
-#define SEND_ESP_ERROR() SEND_RESULT_FORMAT("ERROR %s %s", (TAG), ncb_esp_fail_err_msg); ESP_LOGI(TAG, "Send ERROR: %s (%x) in %s", ncb_esp_fail_err_msg, ncb_esp_fail_err_code, __FUNCTION__);
+#define SEND_ESP_ERROR() SEND_RESULT_FORMAT("ERROR %s %s", (TAG), _ncb_esp_fail_err_msg); ESP_LOGI(TAG, "Send ERROR: %s (%x) in %s", _ncb_esp_fail_err_msg, _ncb_esp_fail_err_code, __FUNCTION__);
 
 // wifi_util.c
 enum ncb_wifi_status {
-  WIFI_NONE,
-  WIFI_CONNECTING,
-  WIFI_RECONNECTING,
-  WIFI_CONNECTED,
-  WIFI_DISCONNECTED,
+  NCB_WIFI_NONE,
+  NCB_WIFI_CONNECTING,
+  NCB_WIFI_RECONNECTING,
+  NCB_WIFI_CONNECTED,
+  NCB_WIFI_DISCONNECTED,
 };
 typedef void (*ncb_wifi_status_callback)(enum ncb_wifi_status status);
 

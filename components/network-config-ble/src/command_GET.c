@@ -14,9 +14,9 @@ void _ncb_command_GET_STR(int argc, const char *args[], int datac, const char *d
 
   size_t required_size;
   char *value = NULL;
-  CATCH_ESP_FAIL(nvs_get_str(nvs_handle, args[0], NULL, &required_size), "nvs_get_str");
+  _CATCH_ESP_FAIL(nvs_get_str(nvs_handle, args[0], NULL, &required_size), "nvs_get_str");
   value = malloc(required_size);
-  CATCH_ESP_FAIL(nvs_get_str(nvs_handle, args[0], value, &required_size), "nvs_get_str");
+  _CATCH_ESP_FAIL(nvs_get_str(nvs_handle, args[0], value, &required_size), "nvs_get_str");
   nvs_close(nvs_handle);
   nordic_uart_sendln(value);
   free(value);

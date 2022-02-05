@@ -16,12 +16,15 @@ static const struct BLECommand default_commands[] = {
     {.name = "CHECK_MQTT", .multiline = false, .func = _ncb_command_CHECK_MQTT},
 };
 
-static struct BLECommand **original_commands = NULL;
-static void (*smart_config_callback)(enum smart_config_callback_type) = NULL;
-const char *ncb_esp_fail_err_msg = NULL;
-esp_err_t ncb_esp_fail_err_code;
+static struct BLECommand **_original_commands = NULL;
+static void (*_smart_config_callback)(enum smart_config_callback_type) = NULL;
 
-static void run_command(const struct BLECommand *command, char *item) {
+static TaskHandle_t _ncb_uart_task = NULL;
+
+const char *_ncb_esp_fail_err_msg = NULL;
+esp_err_t _ncb_esp_fail_err_code;
+
+static void _run_command(const struct BLECommand *command, char *item) {
   char *args[MAX_COMMAND_ARGC];
   int argc = 0;
 
@@ -38,8 +41,6 @@ static void run_command(const struct BLECommand *command, char *item) {
     size_t dataline_size;
     int line_count = atoi(args[--argc]);
     args[argc] = NULL;
-
-    ESP_LOGI(TAG, "line_count=%d", line_count);
 
     if (line_count >= CONFIG_NORDIC_UART_MAX_LINE_LENGTH) {
       ESP_LOGE(TAG, "over lines");
@@ -66,8 +67,8 @@ static void run_command(const struct BLECommand *command, char *item) {
   }
 }
 
-static void uartIncomingTask(void *parameter) {
-  for (;;) {
+static void _uart_incoming_task(void *parameter) {
+  while (1) {
     size_t item_size;
     char *line = (char *)xRingbufferReceive(nordic_uart_rx_buf_handle, &item_size, portMAX_DELAY);
 
@@ -78,10 +79,10 @@ static void uartIncomingTask(void *parameter) {
       char *item = _ncb_get_token(line, &command_name);
 
       if (command_name) {
-        if (original_commands) {
-          for (struct BLECommand **commands = original_commands; *commands; ++commands) {
+        if (_original_commands) {
+          for (struct BLECommand **commands = _original_commands; *commands; ++commands) {
             if (strcasecmp(command_name, (*commands)->name) == 0) {
-              run_command(*commands, item);
+              _run_command(*commands, item);
               break;
             }
           }
@@ -89,7 +90,7 @@ static void uartIncomingTask(void *parameter) {
 
         for (int i = 0; i < sizeof(default_commands) / sizeof(struct BLECommand); ++i) {
           if (strcasecmp(command_name, default_commands[i].name) == 0) {
-            run_command(&default_commands[i], item);
+            _run_command(&default_commands[i], item);
             break;
           }
         }
@@ -101,32 +102,40 @@ static void uartIncomingTask(void *parameter) {
   vTaskDelete(NULL);
 }
 
-static void nordic_uart_callback(enum nordic_uart_callback_type callback_type) {
-  if (smart_config_callback) {
+static void _nordic_uart_callback(enum nordic_uart_callback_type callback_type) {
+  if (_smart_config_callback) {
     if (callback_type == NORDIC_UART_DISCONNECTED) {
-      smart_config_callback(SMART_CONFIG_WAIT_BLE);
+      _smart_config_callback(SMART_CONFIG_WAIT_BLE);
     } else if (callback_type == NORDIC_UART_CONNECTED) {
-      smart_config_callback(SMART_CONFIG_READY_TO_CONFIG);
+      _smart_config_callback(SMART_CONFIG_READY_TO_CONFIG);
     }
   }
 }
 
-esp_err_t ncb_config_start(const struct BLECommand *commands[], void (*callback)(enum smart_config_callback_type)) {
-  original_commands = commands;
-  smart_config_callback = callback;
-  CATCH_ESP_FAIL(ncb_wifi_init(), "ncb_wifi_init");
-  CATCH_ESP_FAIL(esp_wifi_start(), "esp_wifi_start");
+esp_err_t ncb_config_start(const char *filename, const struct BLECommand *commands[],
+                           void (*callback)(enum smart_config_callback_type)) {
+  if (_ncb_uart_task)
+    return ESP_FAIL;
 
-  if (smart_config_callback)
-    smart_config_callback(SMART_CONFIG_WAIT_BLE);
+  _original_commands = commands;
+  _smart_config_callback = callback;
+  _CATCH_ESP_FAIL(ncb_wifi_init(), "ncb_wifi_init");
+  _CATCH_ESP_FAIL(esp_wifi_start(), "esp_wifi_start");
 
-  nordic_uart_start("Nordic UART", nordic_uart_callback);
+  if (_smart_config_callback)
+    _smart_config_callback(SMART_CONFIG_WAIT_BLE);
 
-  xTaskCreate(uartIncomingTask, "uartIncomingTask", 8192 * 2, NULL, 1, NULL);
+  nordic_uart_start(filename, _nordic_uart_callback);
+
+  _ncb_uart_task = xTaskCreate(_uart_incoming_task, "_uart_incoming_task", 2048 * 6, NULL, 1, &_ncb_uart_task);
   return ESP_OK;
 
 esp_failed:
-  ESP_LOGE(TAG, "ncb_start> err %d, %s", ncb_esp_fail_err_code, ncb_esp_fail_err_msg);
-
   return ESP_FAIL;
+}
+
+esp_err_t ncb_config_end() {
+  vTaskDelete(_ncb_uart_task);
+  _ncb_uart_task = NULL;
+  nordic_uart_stop();
 }

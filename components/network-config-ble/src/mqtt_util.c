@@ -13,9 +13,9 @@ typedef enum QoS { QOS0 = 0, QOS1 = 1 } QoS;
 static const char *_get_nvs_value(nvs_handle_t nvs_handle, const char *name) {
   size_t required_size = 0;
   char *value = NULL;
-  CATCH_ESP_FAIL(nvs_get_str(nvs_handle, name, NULL, &required_size), "nvs_get_str");
+  _CATCH_ESP_FAIL(nvs_get_str(nvs_handle, name, NULL, &required_size), "nvs_get_str");
   value = malloc(required_size);
-  CATCH_ESP_FAIL(nvs_get_str(nvs_handle, name, value, &required_size), "nvs_get_str");
+  _CATCH_ESP_FAIL(nvs_get_str(nvs_handle, name, value, &required_size), "nvs_get_str");
   return value;
 
 esp_failed:

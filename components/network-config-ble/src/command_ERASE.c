@@ -5,8 +5,8 @@ static const char *TAG = "NCB_ERASE";
 
 void _ncb_command_ERASE(int argc, const char *args[], int datac, const char *data[]) {
   nvs_handle_t nvs_handle;
-  CATCH_ESP_FAIL(nvs_open(NVS_NAMESPACE, NVS_READWRITE, &nvs_handle), "nvs_open");
-  CATCH_ESP_FAIL(nvs_erase_all(nvs_handle), "nvs_erase_all");
+  _CATCH_ESP_FAIL(nvs_open(NVS_NAMESPACE, NVS_READWRITE, &nvs_handle), "nvs_open");
+  _CATCH_ESP_FAIL(nvs_erase_all(nvs_handle), "nvs_erase_all");
   nvs_close(nvs_handle);
 
   SEND_OK();
