@@ -1,6 +1,6 @@
 idf_component_register(
   SRCS
-    "src/main.c"
+    "src/config.c"
     "src/tokenizer.c"
     "src/wifi_util.c"
     "src/mqtt_util.c"

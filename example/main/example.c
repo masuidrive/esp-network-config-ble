@@ -8,10 +8,13 @@
 
 void command_DEBUG(int argc, const char *args[], int datac, const char *data[]);
 
-static const struct BLECommand BLECommandDEBUG = {.name = "DEBUG", .multiline = true, .func = command_DEBUG};
+static const struct ncb_command ncb_commandDEBUG = { //
+    .name = "DEBUG",
+    .multiline = true,
+    .func = command_DEBUG};
 
-struct BLECommand *extend_commands[] = {
-    &BLECommandDEBUG,
+struct ncb_command *extend_commands[] = {
+    &ncb_commandDEBUG,
     NULL,
 };
 

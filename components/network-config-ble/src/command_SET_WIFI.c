@@ -13,7 +13,7 @@ void _ncb_command_SET_WIFI(int argc, const char *args[], int datac, const char *
   if (ncb_wifi_connect(ssid, password, 5, NULL) == ESP_OK) {
     // save wifi config
     nvs_handle_t nvs_handle;
-    ESP_ERROR_CHECK(nvs_open(NVS_NAMESPACE, NVS_READWRITE, &nvs_handle));
+    ESP_ERROR_CHECK(nvs_open(_NCB_NVS_NAMESPACE, NVS_READWRITE, &nvs_handle));
     ESP_ERROR_CHECK(nvs_set_str(nvs_handle, "ssid", ssid));
     ESP_ERROR_CHECK(nvs_set_str(nvs_handle, "password", password));
     nvs_close(nvs_handle);

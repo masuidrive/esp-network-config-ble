@@ -61,8 +61,8 @@ static esp_err_t _wifi_setup(const char *ssid, const char *password) {
   strlcpy((char *)wifi_config.sta.ssid, ssid, sizeof(wifi_config.sta.ssid));
   strlcpy((char *)wifi_config.sta.password, password, sizeof(wifi_config.sta.password));
 
-  _CATCH_ESP_FAIL(esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_config), "esp_wifi_set_config");
-  _CATCH_ESP_FAIL(esp_wifi_start(), "esp_wifi_start");
+  _NCB_CATCH_ESP_ERR(esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_config), "esp_wifi_set_config");
+  _NCB_CATCH_ESP_ERR(esp_wifi_start(), "esp_wifi_start");
 
   return ESP_OK;
 
@@ -77,7 +77,7 @@ esp_err_t ncb_wifi_connect(const char *ssid, const char *password, int max_retry
   _retry_num = 0;
   ESP_LOGI(TAG, "connect SSID: %s, %s", ssid, password);
 
-  _CATCH_ESP_FAIL(esp_wifi_stop(), "esp_wifi_stop");
+  _NCB_CATCH_ESP_ERR(esp_wifi_stop(), "esp_wifi_stop");
 
   if (_status_callback)
     _status_callback(_wifi_status = NCB_WIFI_CONNECTING);
@@ -86,7 +86,7 @@ esp_err_t ncb_wifi_connect(const char *ssid, const char *password, int max_retry
   _wifi_event_group = xEventGroupCreate();
 
   // init wifi config
-  _CATCH_ESP_FAIL(_wifi_setup(ssid, password), "_wifi_setup");
+  _NCB_CATCH_ESP_ERR(_wifi_setup(ssid, password), "_wifi_setup");
 
   // wait wifi_event_handler task
   EventBits_t bits =
@@ -100,11 +100,11 @@ esp_err_t ncb_wifi_connect(const char *ssid, const char *password, int max_retry
     return ESP_OK;
   } else if (bits & WIFI_FAILED_BIT) {
     ESP_LOGI(TAG, "Failed to connect to SSID: %s", ssid);
-    _CATCH_ESP_FAIL(esp_wifi_stop(), "esp_wifi_stop");
+    _NCB_CATCH_ESP_ERR(esp_wifi_stop(), "esp_wifi_stop");
     return ESP_FAIL;
   } else {
     ESP_LOGE(TAG, "UNEXPECTED EVENT");
-    _CATCH_ESP_FAIL(esp_wifi_stop(), "esp_wifi_stop");
+    _NCB_CATCH_ESP_ERR(esp_wifi_stop(), "esp_wifi_stop");
     return ESP_FAIL;
   }
 
@@ -116,13 +116,13 @@ esp_failed:
 
 esp_err_t ncb_wifi_connect_with_nvs(int max_retry, ncb_wifi_status_callback status_callback) {
   nvs_handle_t nvs_handle;
-  _CATCH_ESP_FAIL(nvs_open(NVS_NAMESPACE, NVS_READONLY, &nvs_handle), "nvs_open");
+  _NCB_CATCH_ESP_ERR(nvs_open(_NCB_NVS_NAMESPACE, NVS_READONLY, &nvs_handle), "nvs_open");
 
   size_t ssid_size = MAX_SSID_LEN, passphrase_size = MAX_PASSPHRASE_LEN;
   char ssid[MAX_SSID_LEN], password[MAX_PASSPHRASE_LEN];
 
-  _CATCH_ESP_FAIL(nvs_get_str(nvs_handle, "ssid", ssid, &ssid_size), "nvs_get_str: ssid");
-  _CATCH_ESP_FAIL(nvs_get_str(nvs_handle, "password", password, &passphrase_size), "nvs_get_str: password");
+  _NCB_CATCH_ESP_ERR(nvs_get_str(nvs_handle, "ssid", ssid, &ssid_size), "nvs_get_str: ssid");
+  _NCB_CATCH_ESP_ERR(nvs_get_str(nvs_handle, "password", password, &passphrase_size), "nvs_get_str: password");
 
   nvs_close(nvs_handle);
 
@@ -134,21 +134,21 @@ esp_failed:
 }
 
 esp_err_t ncb_wifi_init() {
-  _CATCH_ESP_FAIL(nvs_flash_init(), "nvs_flash_init");
-  _CATCH_ESP_FAIL(esp_netif_init(), "esp_netif_init");
+  _NCB_CATCH_ESP_ERR(nvs_flash_init(), "nvs_flash_init");
+  _NCB_CATCH_ESP_ERR(esp_netif_init(), "esp_netif_init");
   esp_netif_create_default_wifi_sta();
 
-  _CATCH_ESP_FAIL(
+  _NCB_CATCH_ESP_ERR(
       esp_event_handler_instance_register(WIFI_EVENT, ESP_EVENT_ANY_ID, &_wifi_event_handler, NULL, &_instance_any_id),
       "register WIFI_EVENT");
-  _CATCH_ESP_FAIL(
+  _NCB_CATCH_ESP_ERR(
       esp_event_handler_instance_register(IP_EVENT, ESP_EVENT_ANY_ID, &_wifi_event_handler, NULL, &_instance_got_ip),
       "register IP_EVENT");
 
   wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
-  _CATCH_ESP_FAIL(esp_wifi_init(&cfg), "esp_wifi_init");
-  _CATCH_ESP_FAIL(esp_wifi_set_storage(WIFI_STORAGE_FLASH), "WIFI_STORAGE_FLASH");
-  _CATCH_ESP_FAIL(esp_wifi_set_mode(WIFI_MODE_STA), "WIFI_MODE_STA");
+  _NCB_CATCH_ESP_ERR(esp_wifi_init(&cfg), "esp_wifi_init");
+  _NCB_CATCH_ESP_ERR(esp_wifi_set_storage(WIFI_STORAGE_FLASH), "WIFI_STORAGE_FLASH");
+  _NCB_CATCH_ESP_ERR(esp_wifi_set_mode(WIFI_MODE_STA), "WIFI_MODE_STA");
 
   return ESP_OK;
 

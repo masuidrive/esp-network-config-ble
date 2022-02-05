@@ -11,4 +11,4 @@ License: Apache by Yuichiro MASUI <masui@masuidrive.jp>
   - ex) \_ncb_hello_world(), \_ncb_params
 - Start with \_: file scope variable / function in this library
   - It only use in the file
-  - ex) \_counter, \_func1(), \_CATCH_ESP_FAIL()
+  - ex) \_counter, \_func1(), \_NCB_CATCH_ESP_ERR()

@@ -9,7 +9,7 @@ static const char *TAG = "NCB_LIST_SSID";
 void _ncb_command_LIST_SSID(int argc, const char *args[], int datac, const char *data[]) {
   const wifi_scan_config_t scanConf = {
       .ssid = NULL, .bssid = NULL, .channel = 0, .show_hidden = true, .scan_type = WIFI_SCAN_TYPE_ACTIVE};
-  _CATCH_ESP_FAIL(esp_wifi_scan_start(&scanConf, true), "esp_wifi_scan_start");
+  _NCB_CATCH_ESP_ERR(esp_wifi_scan_start(&scanConf, true), "esp_wifi_scan_start");
   char buf[LINE_LENGTH];
 
   uint16_t ap_count = 0;
@@ -21,7 +21,7 @@ void _ncb_command_LIST_SSID(int argc, const char *args[], int datac, const char 
 
   uint16_t ap_record_count = MIN((uint16_t)MAX_SSID_COUNT, ap_count);
   wifi_ap_record_t ap_record_list[MAX_SSID_COUNT];
-  _CATCH_ESP_FAIL(esp_wifi_scan_get_ap_records(&ap_record_count, ap_record_list), "esp_wifi_scan_get_ap_records");
+  _NCB_CATCH_ESP_ERR(esp_wifi_scan_get_ap_records(&ap_record_count, ap_record_list), "esp_wifi_scan_get_ap_records");
   ESP_LOGI(TAG, "ap_record_count = %d", ap_record_count);
 
   for (int i = 0; i < ap_record_count; i++) {
@@ -31,9 +31,10 @@ void _ncb_command_LIST_SSID(int argc, const char *args[], int datac, const char 
     snprintf(buf, LINE_LENGTH, "%d,%d,%s", ap->authmode, ap->rssi, (const char *)ap->ssid);
     nordic_uart_sendln(buf);
   }
-  SEND_OK();
+
+  _NCB_SEND_OK();
   return;
 
 esp_failed:
-  SEND_ESP_ERROR();
+  _NCB_SEND_ESP_ERR();
 }

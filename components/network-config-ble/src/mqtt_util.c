@@ -1,8 +1,6 @@
 #include "network-config-ble-internal.h"
 static const char *TAG = "MQTT_UTIL";
 
-#define RETRY_COUNT 5
-
 static ncb_mqtt_message_receiver_callback _message_callback = NULL;
 static ncb_mqtt_status_callback _status_callback = NULL;
 static esp_mqtt_client_handle_t _client;
@@ -13,9 +11,9 @@ typedef enum QoS { QOS0 = 0, QOS1 = 1 } QoS;
 static const char *_get_nvs_value(nvs_handle_t nvs_handle, const char *name) {
   size_t required_size = 0;
   char *value = NULL;
-  _CATCH_ESP_FAIL(nvs_get_str(nvs_handle, name, NULL, &required_size), "nvs_get_str");
+  _NCB_CATCH_ESP_ERR(nvs_get_str(nvs_handle, name, NULL, &required_size), "nvs_get_str");
   value = malloc(required_size);
-  _CATCH_ESP_FAIL(nvs_get_str(nvs_handle, name, value, &required_size), "nvs_get_str");
+  _NCB_CATCH_ESP_ERR(nvs_get_str(nvs_handle, name, value, &required_size), "nvs_get_str");
   return value;
 
 esp_failed:
@@ -90,8 +88,7 @@ esp_err_t ncb_mqtt_connect_with_nvs(ncb_mqtt_message_receiver_callback message_c
     status_callback(MQTT_STARTING);
 
   nvs_handle_t nvs_handle;
-  ESP_ERROR_CHECK(nvs_open(NVS_NAMESPACE, NVS_READWRITE, &nvs_handle));
-  ESP_LOGI(TAG, "URI: %s", _get_nvs_value(nvs_handle, "mqtt_uri"));
+  ESP_ERROR_CHECK(nvs_open(_NCB_NVS_NAMESPACE, NVS_READWRITE, &nvs_handle));
 
   const esp_mqtt_client_config_t mqtt_cfg = {
       .uri = (const char *)_get_nvs_value(nvs_handle, "mqtt_uri"),
