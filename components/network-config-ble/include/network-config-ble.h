@@ -22,6 +22,7 @@ void ncb_config_stop();
 // wifi_util.c
 enum ncb_wifi_status {
   NCB_WIFI_NONE,
+  NCB_WIFI_INITIALIAED,
   NCB_WIFI_CONNECTING,
   NCB_WIFI_RECONNECTING,
   NCB_WIFI_CONNECTED,

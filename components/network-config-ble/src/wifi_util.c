@@ -134,6 +134,8 @@ esp_failed:
 }
 
 esp_err_t ncb_wifi_init() {
+  if (_wifi_status != NCB_WIFI_NONE)
+    return ESP_OK;
   _NCB_CATCH_ESP_ERR(nvs_flash_init(), "nvs_flash_init");
   _NCB_CATCH_ESP_ERR(esp_netif_init(), "esp_netif_init");
   esp_netif_create_default_wifi_sta();
@@ -149,6 +151,7 @@ esp_err_t ncb_wifi_init() {
   _NCB_CATCH_ESP_ERR(esp_wifi_init(&cfg), "esp_wifi_init");
   _NCB_CATCH_ESP_ERR(esp_wifi_set_storage(WIFI_STORAGE_FLASH), "WIFI_STORAGE_FLASH");
   _NCB_CATCH_ESP_ERR(esp_wifi_set_mode(WIFI_MODE_STA), "WIFI_MODE_STA");
+  _wifi_status = NCB_WIFI_INITIALIAED;
 
   return ESP_OK;
 
@@ -158,6 +161,7 @@ esp_failed:
 
 esp_err_t ncb_wifi_disconnect() {
   esp_wifi_stop();
+
   return ESP_OK;
 }
 
