@@ -11,19 +11,6 @@ idf_component_register(
     "include"
   SRC_DIRS
     "src"
-  SRCS
-    "src/config.c"
-    "src/tokenizer.c"
-    "src/wifi_util.c"
-    "src/mqtt_util.c"
-    "src/command_LIST_SSID.c"
-    "src/command_SET_WIFI.c"
-    "src/command_GET.c"
-    "src/command_SET.c"
-    "src/command_CHECK_MQTT.c"
-    "src/command_CHECK_WIFI.c"
-    "src/command_ERASE.c"
-    "src/command_DEVICE_ID.c"
   REQUIRES
     bt
     mqtt

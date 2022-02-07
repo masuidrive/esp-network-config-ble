@@ -64,3 +64,4 @@ void _ncb_command_ERASE_ALL(int argc, const char *args[], int datac, const char 
 void _ncb_command_CHECK_MQTT(int argc, const char *args[], int datac, const char *data[]);
 void _ncb_command_CHECK_WIFI(int argc, const char *args[], int datac, const char *data[]);
 void _ncb_command_DEVICE_ID(int argc, const char *args[], int datac, const char *data[]);
+void _ncb_command_RESTART(int argc, const char *args[], int datac, const char *data[]);

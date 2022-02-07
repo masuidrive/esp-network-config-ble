@@ -15,19 +15,22 @@ static int _retry_num = 0;
 static void _wifi_event_handler(void *arg, esp_event_base_t event_base, int32_t event_id, void *event_data) {
   if (event_base == WIFI_EVENT) {
     if (event_id == WIFI_EVENT_STA_START) {
+      _retry_num = 0;
       esp_wifi_connect();
     } else if (event_id == WIFI_EVENT_STA_DISCONNECTED) {
-      ESP_LOGI(_TAG, "connect to the AP fail: %d", _max_retry);
-
-      if (_retry_num < _max_retry || _wifi_status == NCB_WIFI_CONNECTED || _wifi_status == NCB_WIFI_RECONNECTING) {
+      if ((_wifi_status == NCB_WIFI_CONNECTED || _wifi_status == NCB_WIFI_RECONNECTING) &&
+          (_max_retry < 0 || _retry_num < _max_retry)) {
+        _wifi_status = NCB_WIFI_RECONNECTING;
         if (_status_callback)
-          _status_callback(_wifi_status = NCB_WIFI_RECONNECTING);
+          _status_callback(_wifi_status);
         esp_wifi_connect();
         _retry_num++;
         ESP_LOGI(_TAG, "retry to connect to the AP: %d / %d", _retry_num, _max_retry);
       } else {
+        _retry_num = 0;
+        _wifi_status = NCB_WIFI_DISCONNECTED;
         if (_status_callback)
-          _status_callback(_wifi_status = NCB_WIFI_DISCONNECTED);
+          _status_callback(_wifi_status);
         if (_wifi_event_group)
           xEventGroupSetBits(_wifi_event_group, _WIFI_FAILED_BIT);
       }
@@ -36,8 +39,9 @@ static void _wifi_event_handler(void *arg, esp_event_base_t event_base, int32_t 
     ip_event_got_ip_t *event = (ip_event_got_ip_t *)event_data;
     ESP_LOGI(_TAG, "got ip:" IPSTR, IP2STR(&event->ip_info.ip));
     _retry_num = 0;
+    _wifi_status = NCB_WIFI_CONNECTED;
     if (_status_callback)
-      _status_callback(_wifi_status = NCB_WIFI_CONNECTED);
+      _status_callback(_wifi_status);
     if (_wifi_event_group)
       xEventGroupSetBits(_wifi_event_group, _WIFI_CONNECTED_BIT);
   }
