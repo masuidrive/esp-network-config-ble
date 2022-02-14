@@ -26,6 +26,7 @@ enum ncb_wifi_status {
   NCB_WIFI_CONNECTING,
   NCB_WIFI_RECONNECTING,
   NCB_WIFI_CONNECTED,
+  NCB_WIFI_STOPPING,
   NCB_WIFI_DISCONNECTED,
 };
 typedef void (*ncb_wifi_status_callback)(enum ncb_wifi_status status);

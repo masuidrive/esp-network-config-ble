@@ -81,7 +81,7 @@ esp_err_t ncb_wifi_connect(const char *ssid, const char *password, int max_retry
   _retry_num = 0;
   ESP_LOGI(_TAG, "connect SSID: %s, %s", ssid, password);
 
-  _NCB_CATCH_ESP_ERR(esp_wifi_stop(), "esp_wifi_stop");
+  _NCB_CATCH_ESP_ERR(ncb_wifi_disconnect(), "esp_wifi_stop");
 
   if (_status_callback)
     _status_callback(_wifi_status = NCB_WIFI_CONNECTING);
@@ -164,6 +164,8 @@ esp_failed:
 }
 
 esp_err_t ncb_wifi_disconnect() {
+  _wifi_status = NCB_WIFI_STOPPING;
+
   esp_wifi_stop();
 
   return ESP_OK;

@@ -10,7 +10,7 @@ void _ncb_command_SET_WIFI(int argc, const char *args[], int datac, const char *
   const char *ssid = args[0];
   const char *password = argc < 2 ? "" : args[1];
 
-  _NCB_CATCH_ESP_ERR(ncb_wifi_connect(ssid, password, _NCB_WIFI_CONNECT_RETRY, NULL) == ESP_OK, "ncb_wifi_connect");
+  _NCB_CATCH_ESP_ERR(ncb_wifi_connect(ssid, password, _NCB_WIFI_CONNECT_RETRY, NULL), "ncb_wifi_connect");
 
   // save wifi config
   nvs_handle_t nvs_handle;
