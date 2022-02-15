@@ -1,0 +1,23 @@
+{
+  "name": "esp-network-config-ble",
+  "version": "1.0.0",
+  "homepage": "https://github.com/masuidrive/esp-network-config-ble",
+  "description": "",
+  "dependencies": {
+  },
+  "devDependencies": {
+    "typescript": "^4.1.2",
+    "@types/events": "^3.0.0",
+    "@types/web-bluetooth": "^0.0.9"
+  },
+  "files": [
+    "jslib/dist"
+  ],
+  "main": "jslib/dist/index.js",
+  "scripts": {
+    "build": "cd jslib && tsc",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Yuichiro MASUI <masui@masuidrive.jp>",
+  "license": "Apache-2.0"
+}

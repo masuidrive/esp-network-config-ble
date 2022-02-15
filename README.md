@@ -1,8 +1,12 @@
-# Network / MQTT configu4e for ESP-IDF V4.2 and later
+# Network / MQTT configure for ESP-IDF V4.2 and later
 
 License: Apache by Yuichiro MASUI <masui@masuidrive.jp>
 
-# Variable / function naming rules
+This repo included ESP-IDF component and Javascript library for browser.
+
+# ESP-IDF component
+
+## Variable / function naming rules
 
 - Start with ncb\_: public variable / function
   - It's API
@@ -12,3 +16,6 @@ License: Apache by Yuichiro MASUI <masui@masuidrive.jp>
 - Start with \_: file scope variable / function in this library
   - It only use in the file
   - ex) \_counter, \_func1(), \_NCB_CATCH_ESP_ERR()
+
+# Javascript library
+

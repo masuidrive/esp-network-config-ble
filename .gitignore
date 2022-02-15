@@ -17,6 +17,7 @@ doxygen_warnings.txt
 # Ignore top-level build dir
 /build*/
 /tmp
+/node_modules
 
 # Ignore certificate files
 *.pem

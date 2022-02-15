@@ -37,6 +37,7 @@ esp_err_t ncb_wifi_connect(const char *ssid, const char *password, int max_retry
                            ncb_wifi_status_callback status_callback);
 esp_err_t ncb_wifi_connect_with_nvs(int max_retry, ncb_wifi_status_callback status_callback);
 bool ncb_wifi_is_connected();
+esp_err_t ncb_mqtt_publish_to_response_topic(const char *message);
 
 // mqtt_util.c
 enum ncb_mqtt_status {

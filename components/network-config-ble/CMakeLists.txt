@@ -12,6 +12,7 @@ idf_component_register(
   SRC_DIRS
     "src"
   REQUIRES
+    json
     bt
     mqtt
     nimble-nordic-uart
