@@ -232,7 +232,7 @@ var BLESmartConfig = /** @class */ (function () {
                         _a.sent();
                         _a.label = 2;
                     case 2:
-                        _a.trys.push([2, 9, , 11]);
+                        _a.trys.push([2, 10, , 12]);
                         return [4 /*yield*/, this.send_text("mqtt_uri", config.mqtt_uri)];
                     case 3:
                         if (!(_a.sent()))
@@ -241,29 +241,33 @@ var BLESmartConfig = /** @class */ (function () {
                     case 4:
                         if (!(_a.sent()))
                             throw new Error("Error at mqtt_dev_topic");
-                        return [4 /*yield*/, this.send_text_multiline("mqtt_root_ca", config.root_ca)];
+                        return [4 /*yield*/, this.send_text("mqtt_res_topic", config.mqtt_res_topic)];
                     case 5:
+                        if (!(_a.sent()))
+                            throw new Error("Error at mqtt_res_topic");
+                        return [4 /*yield*/, this.send_text_multiline("mqtt_root_ca", config.root_ca)];
+                    case 6:
                         if (!(_a.sent()))
                             throw new Error("Error at root_ca");
                         return [4 /*yield*/, this.send_text_multiline("mqtt_cert", config.cert)];
-                    case 6:
+                    case 7:
                         if (!(_a.sent()))
                             throw new Error("Error at mqtt_cert");
                         return [4 /*yield*/, this.send_text_multiline("mqtt_priv", config.priv)];
-                    case 7:
+                    case 8:
                         if (!(_a.sent()))
                             throw new Error("Error at mqtt_priv");
                         return [4 /*yield*/, this.state.moveTo(exports.State.Connected)];
-                    case 8:
-                        _a.sent();
-                        return [3 /*break*/, 11];
                     case 9:
+                        _a.sent();
+                        return [3 /*break*/, 12];
+                    case 10:
                         e_3 = _a.sent();
                         return [4 /*yield*/, this.disconnect()];
-                    case 10:
+                    case 11:
                         _a.sent();
                         return [2 /*return*/, false];
-                    case 11: return [2 /*return*/, true];
+                    case 12: return [2 /*return*/, true];
                 }
             });
         });
