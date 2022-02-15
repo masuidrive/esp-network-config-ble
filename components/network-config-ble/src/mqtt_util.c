@@ -82,22 +82,25 @@ static void _mqtt_event_handler(void *handler_args, esp_event_base_t base, int32
 
       if (strlen(_response_topic) > 0) {
         const int resp_size = 256;
-        char *response = (char *)malloc(resp_size);
 
         cJSON *root = cJSON_Parse((char *)event->data);
-        char *uuid = cJSON_GetObjectItem(root, "uuid")->valuestring;
-        if (uuid) {
-          strncpy(response, "{\"event\":\"receive_message\",\"uuid\":\"", resp_size);
-          strncat(response, uuid, resp_size);
-          strncat(response, "\"}", resp_size);
-        } else {
-          strncpy(response, "{\"event\":\"receive_message\"}", resp_size);
+        if (root) {
+          char *response = (char *)malloc(resp_size);
+          cJSON *uuid = cJSON_GetObjectItem(root, "uuid");
+
+          if (uuid) {
+            strncpy(response, "{\"event\":\"receive_message\",\"uuid\":\"", resp_size);
+            strncat(response, uuid->valuestring, resp_size);
+            strncat(response, "\"}", resp_size);
+          } else {
+            strncpy(response, "{\"event\":\"receive_message\"}", resp_size);
+          }
+          cJSON_Delete(root);
+
+          ncb_mqtt_publish_to_response_topic(response);
+
+          free(response);
         }
-        cJSON_Delete(root);
-
-        ncb_mqtt_publish_to_response_topic(response);
-
-        free(response);
       }
     }
     break;
