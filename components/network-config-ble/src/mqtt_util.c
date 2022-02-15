@@ -26,11 +26,11 @@ static bool strncpy_nvs_value(char *dest, nvs_handle_t nvs_handle, const char *n
   const char *val = _get_nvs_value(nvs_handle, name);
   if (val) {
     strncpy(dest, val, size);
-    free(dest);
+    free(val);
     return true;
   } else {
     strncpy(dest, "", size);
-    free(dest);
+    free(val);
     return false;
   }
 }
@@ -141,8 +141,8 @@ esp_err_t ncb_mqtt_connect_with_nvs(ncb_mqtt_message_receiver_callback message_c
   free((void *)mqtt_cfg.client_key_pem);
   free((void *)mqtt_cfg.cert_pem);
 
-  strncpy_nvs_value(_topic, nvs_handle, "mqtt_device_topic", sizeof(_topic));
-  strncpy_nvs_value(_response_topic, nvs_handle, "mqtt_response_topic", sizeof(_response_topic));
+  strncpy_nvs_value(_topic, nvs_handle, "mqtt_dev_topic", sizeof(_topic));
+  strncpy_nvs_value(_response_topic, nvs_handle, "mqtt_res_topic", sizeof(_response_topic));
 
   nvs_close(nvs_handle);
 

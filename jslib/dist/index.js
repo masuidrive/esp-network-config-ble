@@ -56,8 +56,8 @@ exports.SSIDItem = SSIDItem;
 var IoTConfig = /** @class */ (function () {
     function IoTConfig() {
         this.mqtt_uri = "";
-        this.mqtt_device_topic = "";
-        this.mqtt_response_topic = "";
+        this.mqtt_dev_topic = "";
+        this.mqtt_res_topic = "";
         this.root_ca = "";
         this.cert = "";
         this.priv = "";
@@ -237,10 +237,10 @@ var BLESmartConfig = /** @class */ (function () {
                     case 3:
                         if (!(_a.sent()))
                             throw new Error("Error at mqtt_uri");
-                        return [4 /*yield*/, this.send_text("mqtt_device_topic", config.mqtt_device_topic)];
+                        return [4 /*yield*/, this.send_text("mqtt_dev_topic", config.mqtt_dev_topic)];
                     case 4:
                         if (!(_a.sent()))
-                            throw new Error("Error at mqtt_device_topic");
+                            throw new Error("Error at mqtt_dev_topic");
                         return [4 /*yield*/, this.send_text_multiline("mqtt_root_ca", config.root_ca)];
                     case 5:
                         if (!(_a.sent()))

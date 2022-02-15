@@ -21,8 +21,8 @@ export class SSIDItem {
 
 export class IoTConfig {
   mqtt_uri: string = "";
-  mqtt_device_topic: string = "";
-  mqtt_response_topic: string = "";
+  mqtt_dev_topic: string = "";
+  mqtt_res_topic: string = "";
   root_ca: string = "";
   cert: string = "";
   priv: string = "";
@@ -151,10 +151,8 @@ export class BLESmartConfig {
     try {
       if (!(await this.send_text("mqtt_uri", config.mqtt_uri)))
         throw new Error(`Error at mqtt_uri`);
-      if (
-        !(await this.send_text("mqtt_device_topic", config.mqtt_device_topic))
-      )
-        throw new Error(`Error at mqtt_device_topic`);
+      if (!(await this.send_text("mqtt_dev_topic", config.mqtt_dev_topic)))
+        throw new Error(`Error at mqtt_dev_topic`);
       if (!(await this.send_text_multiline("mqtt_root_ca", config.root_ca)))
         throw new Error(`Error at root_ca`);
       if (!(await this.send_text_multiline("mqtt_cert", config.cert)))
