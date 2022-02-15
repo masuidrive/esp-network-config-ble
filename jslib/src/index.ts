@@ -153,6 +153,8 @@ export class BLESmartConfig {
         throw new Error(`Error at mqtt_uri`);
       if (!(await this.send_text("mqtt_dev_topic", config.mqtt_dev_topic)))
         throw new Error(`Error at mqtt_dev_topic`);
+      if (!(await this.send_text("mqtt_res_topic", config.mqtt_res_topic)))
+        throw new Error(`Error at mqtt_res_topic`);
       if (!(await this.send_text_multiline("mqtt_root_ca", config.root_ca)))
         throw new Error(`Error at root_ca`);
       if (!(await this.send_text_multiline("mqtt_cert", config.cert)))

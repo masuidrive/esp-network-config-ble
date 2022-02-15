@@ -64,7 +64,7 @@ static void _mqtt_event_handler(void *handler_args, esp_event_base_t base, int32
     ESP_LOGI(_TAG, "MQTT_EVENT_SUBSCRIBED, msg_id=%d", event->msg_id);
     if (_status_callback)
       _status_callback(MQTT_CONNECTED);
-    ncb_mqtt_publish_to_response_topic("{\"event\";\"connected\"}");
+    ncb_mqtt_publish_to_response_topic("{\"event\":\"connected\"}");
 
     break;
 
@@ -135,14 +135,16 @@ esp_err_t ncb_mqtt_connect_with_nvs(ncb_mqtt_message_receiver_callback message_c
       .cert_pem = (const char *)_get_nvs_value(nvs_handle, "mqtt_root_ca"),
   };
   _client = esp_mqtt_client_init(&mqtt_cfg);
-  // TODO: ここで解放していいの？
-  free((void *)mqtt_cfg.uri);
-  free((void *)mqtt_cfg.client_cert_pem);
-  free((void *)mqtt_cfg.client_key_pem);
-  free((void *)mqtt_cfg.cert_pem);
+  // TODO: ここで解放していいの？<ダメだった
+  // free((void *)mqtt_cfg.uri);
+  // free((void *)mqtt_cfg.client_cert_pem);
+  // free((void *)mqtt_cfg.client_key_pem);
+  // free((void *)mqtt_cfg.cert_pem);
 
   strncpy_nvs_value(_topic, nvs_handle, "mqtt_dev_topic", sizeof(_topic));
   strncpy_nvs_value(_response_topic, nvs_handle, "mqtt_res_topic", sizeof(_response_topic));
+  ESP_LOGI(_TAG, "mqtt_dev_topic=%s", _topic);
+  ESP_LOGI(_TAG, "mqtt_res_topic=%s", _response_topic);
 
   nvs_close(nvs_handle);
 
