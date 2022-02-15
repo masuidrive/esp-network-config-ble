@@ -84,11 +84,11 @@ static void _mqtt_event_handler(void *handler_args, esp_event_base_t base, int32
         const int resp_size = 256;
 
         cJSON *root = cJSON_Parse((char *)event->data);
-        if (root) {
+        if (root && root->type == cJSON_Object) {
           char *response = (char *)malloc(resp_size);
           cJSON *uuid = cJSON_GetObjectItem(root, "uuid");
 
-          if (uuid) {
+          if (uuid && uuid->type == cJSON_String) {
             strncpy(response, "{\"event\":\"receive_message\",\"uuid\":\"", resp_size);
             strncat(response, uuid->valuestring, resp_size);
             strncat(response, "\"}", resp_size);
