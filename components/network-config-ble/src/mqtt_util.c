@@ -6,6 +6,7 @@ static ncb_mqtt_status_callback _status_callback = NULL;
 static esp_mqtt_client_handle_t _client;
 static char _topic[256] = "";
 static char _response_topic[256] = "";
+static bool _clear_retained_message = true;
 
 typedef enum QoS { QOS0 = 0, QOS1 = 1 } QoS;
 
@@ -26,11 +27,11 @@ static bool strncpy_nvs_value(char *dest, nvs_handle_t nvs_handle, const char *n
   const char *val = _get_nvs_value(nvs_handle, name);
   if (val) {
     strncpy(dest, val, size);
-    free(val);
+    free((void *)val);
     return true;
   } else {
     strncpy(dest, "", size);
-    free(val);
+    free((void *)val);
     return false;
   }
 }
@@ -38,6 +39,15 @@ static bool strncpy_nvs_value(char *dest, nvs_handle_t nvs_handle, const char *n
 static void _log_error_if_nonzero(const char *message, int error_code) {
   if (error_code != 0) {
     ESP_LOGE(_TAG, "Last error %s: 0x%x", message, error_code);
+  }
+}
+
+esp_err_t _send_clear_retained_message() {
+  if (strlen(_topic) > 0) {
+    esp_mqtt_client_publish(_client, _topic, "", 0, QOS1, true);
+    return ESP_OK;
+  } else {
+    return ESP_FAIL;
   }
 }
 
@@ -52,6 +62,7 @@ static void _mqtt_event_handler(void *handler_args, esp_event_base_t base, int32
     if (esp_mqtt_client_subscribe(client, _topic, 1) < 0) {
       // TODO: need it?
     }
+
     break;
 
   case MQTT_EVENT_DISCONNECTED:
@@ -64,8 +75,6 @@ static void _mqtt_event_handler(void *handler_args, esp_event_base_t base, int32
     ESP_LOGI(_TAG, "MQTT_EVENT_SUBSCRIBED, msg_id=%d", event->msg_id);
     if (_status_callback)
       _status_callback(MQTT_CONNECTED);
-    ncb_mqtt_publish_to_response_topic("{\"event\":\"connected\"}");
-
     break;
 
   case MQTT_EVENT_UNSUBSCRIBED:
@@ -77,8 +86,14 @@ static void _mqtt_event_handler(void *handler_args, esp_event_base_t base, int32
     break;
 
   case MQTT_EVENT_DATA:
-    if (_message_callback) {
-      _message_callback(event->topic, (char *)event->data);
+    ESP_LOGI(_TAG, "MQTT_EVENT_DATA, msg_id=%d, %d", event->msg_id, event->data_len);
+
+    if (_message_callback && event->data_len) {
+      char *data = malloc(event->data_len + 1);
+      memcpy(data, event->data, event->data_len);
+      data[event->data_len] = '\0';
+
+      _message_callback(event->topic, data);
 
       if (strlen(_response_topic) > 0) {
         const int resp_size = 256;
@@ -102,7 +117,11 @@ static void _mqtt_event_handler(void *handler_args, esp_event_base_t base, int32
           free(response);
         }
       }
+      free((void *)data);
     }
+
+    if (event->data_len && _clear_retained_message)
+      _send_clear_retained_message();
     break;
 
   case MQTT_EVENT_ERROR:

@@ -12,6 +12,34 @@ static enum ncb_wifi_status _wifi_status = NCB_WIFI_NONE;
 static int _max_retry = 0;
 static int _retry_num = 0;
 
+static esp_err_t _set_ntp() {
+  time_t now = 0;
+  struct tm timeinfo = {0};
+  int retry = 0;
+
+  time(&now);
+  localtime_r(&now, &timeinfo);
+  if (timeinfo.tm_year > (2020 - 1900)) {
+    return ESP_OK; // already set system time
+  }
+
+  sntp_setoperatingmode(SNTP_OPMODE_POLL);
+  sntp_setservername(0, "pool.ntp.org");
+  sntp_init();
+
+  while (timeinfo.tm_year < (2020 - 1900)) {
+    ESP_LOGI(_TAG, "Waiting for system time to be set... (%d)", retry + 1);
+    vTaskDelay(500 / portTICK_PERIOD_MS);
+    time(&now);
+    localtime_r(&now, &timeinfo);
+    ++retry;
+  }
+  ESP_LOGI(_TAG, "Current time is %d/%d/%d %d:%d:%d UTC", timeinfo.tm_year + 1900, timeinfo.tm_mon + 1,
+           timeinfo.tm_mday, timeinfo.tm_hour, timeinfo.tm_min, timeinfo.tm_sec);
+
+  return ESP_OK;
+}
+
 static void _wifi_event_handler(void *arg, esp_event_base_t event_base, int32_t event_id, void *event_data) {
   if (event_base == WIFI_EVENT) {
     if (event_id == WIFI_EVENT_STA_START) {
@@ -40,6 +68,8 @@ static void _wifi_event_handler(void *arg, esp_event_base_t event_base, int32_t 
     ESP_LOGI(_TAG, "got ip:" IPSTR, IP2STR(&event->ip_info.ip));
     _retry_num = 0;
     _wifi_status = NCB_WIFI_CONNECTED;
+    _set_ntp();
+
     if (_status_callback)
       _status_callback(_wifi_status);
     if (_wifi_event_group)
