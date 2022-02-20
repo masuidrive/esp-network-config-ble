@@ -16,4 +16,5 @@ idf_component_register(
     bt
     mqtt
     nimble-nordic-uart
+    app_update
 )

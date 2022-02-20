@@ -14,6 +14,7 @@ static const struct ncb_command default_commands[] = {
     {.name = "DEVICE_ID", .multiline = false, .func = _ncb_command_DEVICE_ID},
     {.name = "CHECK_MQTT", .multiline = false, .func = _ncb_command_CHECK_MQTT},
     {.name = "RESTART", .multiline = false, .func = _ncb_command_RESTART},
+    {.name = "OTA", .multiline = false, .func = _ncb_command_OTA},
 };
 
 static struct ncb_command **_extend_commands = NULL;
@@ -74,12 +75,14 @@ static void _uart_incoming_task(void *parameter) {
 
       char *command_name;
       char *item = _ncb_get_token(line, &command_name);
+      bool executed = false;
 
       if (command_name) {
         if (_extend_commands) {
           for (struct ncb_command **commands = _extend_commands; *commands; ++commands) {
             if (strcasecmp(command_name, (*commands)->name) == 0) {
               _run_command(*commands, item);
+              executed = true;
               break;
             }
           }
@@ -88,8 +91,12 @@ static void _uart_incoming_task(void *parameter) {
         for (int i = 0; i < sizeof(default_commands) / sizeof(struct ncb_command); ++i) {
           if (strcasecmp(command_name, default_commands[i].name) == 0) {
             _run_command(&default_commands[i], item);
+            executed = true;
             break;
           }
+        }
+        if (!executed) {
+          _NCB_SEND_ERROR("unknown command");
         }
       }
 

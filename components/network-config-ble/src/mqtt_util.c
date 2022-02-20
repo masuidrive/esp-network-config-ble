@@ -62,7 +62,6 @@ static void _mqtt_event_handler(void *handler_args, esp_event_base_t base, int32
     if (esp_mqtt_client_subscribe(client, _topic, 1) < 0) {
       // TODO: need it?
     }
-
     break;
 
   case MQTT_EVENT_DISCONNECTED:
