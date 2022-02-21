@@ -11,7 +11,6 @@ static const struct ncb_command default_commands[] = {
     {.name = "LIST_SSID", .multiline = false, .func = _ncb_command_LIST_SSID},
     {.name = "SET_WIFI", .multiline = false, .func = _ncb_command_SET_WIFI},
     {.name = "CHECK_WIFI", .multiline = false, .func = _ncb_command_CHECK_WIFI},
-    {.name = "DEVICE_ID", .multiline = false, .func = _ncb_command_DEVICE_ID},
     {.name = "CHECK_MQTT", .multiline = false, .func = _ncb_command_CHECK_MQTT},
     {.name = "RESTART", .multiline = false, .func = _ncb_command_RESTART},
     {.name = "OTA", .multiline = false, .func = _ncb_command_OTA},
@@ -122,7 +121,8 @@ static void _nordic_uart_callback(enum nordic_uart_callback_type callback_type) 
 }
 
 static char *alloc_strcpy(const char *str) {
-  if(str == NULL) return NULL;
+  if (str == NULL)
+    return NULL;
   char *dest = malloc(strlen(str) + 1);
   strcpy(dest, str);
   return dest;
