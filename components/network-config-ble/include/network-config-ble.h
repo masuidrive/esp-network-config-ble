@@ -15,7 +15,8 @@ enum ncb_callback_type {
   NCB_PROCESSING,
 };
 
-esp_err_t ncb_config_start(const char *filename, const struct ncb_command *commands[],
+esp_err_t ncb_config_start(const char *device_id, const char *ble_device_name, const char *firmware_version,
+                           const char *device_type, const struct ncb_command *commands[],
                            void (*callback)(enum ncb_callback_type callback_type));
 
 void ncb_config_stop();
@@ -33,6 +34,7 @@ enum ncb_wifi_status {
 typedef void (*ncb_wifi_status_callback)(enum ncb_wifi_status status);
 
 esp_err_t ncb_wifi_init();
+bool ncb_wifi_is_configured();
 esp_err_t ncb_wifi_disconnect();
 esp_err_t ncb_wifi_connect(const char *ssid, const char *password, int max_retry,
                            ncb_wifi_status_callback status_callback);

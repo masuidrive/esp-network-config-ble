@@ -201,4 +201,23 @@ esp_err_t ncb_wifi_disconnect() {
   return ESP_OK;
 }
 
-bool ncb_wifi_is_connected() { return _wifi_status == NCB_WIFI_CONNECTED; }
+bool ncb_wifi_is_connected() { //
+  return _wifi_status == NCB_WIFI_CONNECTED;
+}
+
+bool ncb_wifi_is_configured() { //
+  nvs_handle_t nvs_handle;
+  _NCB_CATCH_ESP_ERR(nvs_open(_NCB_NVS_NAMESPACE, NVS_READONLY, &nvs_handle), "nvs_open");
+
+  size_t ssid_size;
+
+  _NCB_CATCH_ESP_ERR(nvs_get_str(nvs_handle, "ssid", NULL, &ssid_size), "nvs_get_str: ssid size");
+  nvs_close(nvs_handle);
+
+  return ssid_size > 0;
+
+esp_failed:
+  nvs_close(nvs_handle);
+
+  return false;
+}

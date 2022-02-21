@@ -17,12 +17,17 @@ static const struct ncb_command default_commands[] = {
     {.name = "OTA", .multiline = false, .func = _ncb_command_OTA},
 };
 
-static struct ncb_command **_extend_commands = NULL;
+static const struct ncb_command **_extend_commands = NULL;
 static void (*ncb_callback)(enum ncb_callback_type) = NULL;
 static TaskHandle_t _ncb_uart_task = NULL;
 
 const char *_ncb_esp_err_msg = NULL;
 esp_err_t _ncb_esp_err_code = ESP_OK;
+
+char *_ncb_ble_device_name = NULL;
+char *_ncb_firmware_version = NULL;
+char *_ncb_device_id = NULL;
+char *_ncb_device_type = NULL;
 
 static void _run_command(const struct ncb_command *command, char *item) {
   char *args[_NCB_UART_COMMAND_MAX_ARGC];
@@ -79,7 +84,7 @@ static void _uart_incoming_task(void *parameter) {
 
       if (command_name) {
         if (_extend_commands) {
-          for (struct ncb_command **commands = _extend_commands; *commands; ++commands) {
+          for (const struct ncb_command **commands = _extend_commands; *commands; ++commands) {
             if (strcasecmp(command_name, (*commands)->name) == 0) {
               _run_command(*commands, item);
               executed = true;
@@ -116,11 +121,23 @@ static void _nordic_uart_callback(enum nordic_uart_callback_type callback_type) 
   }
 }
 
-esp_err_t ncb_config_start(const char *filename, const struct ncb_command *commands[],
+static char *alloc_strcpy(const char *str) {
+  if(str == NULL) return NULL;
+  char *dest = malloc(strlen(str) + 1);
+  strcpy(dest, str);
+  return dest;
+}
+
+esp_err_t ncb_config_start(const char *device_id, const char *ble_device_name, const char *firmware_version,
+                           const char *device_type, const struct ncb_command *commands[],
                            void (*callback)(enum ncb_callback_type)) {
   if (_ncb_uart_task)
     return ESP_FAIL;
 
+  _ncb_device_id = alloc_strcpy(device_id);
+  _ncb_ble_device_name = alloc_strcpy(ble_device_name);
+  _ncb_firmware_version = alloc_strcpy(firmware_version);
+  _ncb_device_type = alloc_strcpy(device_type);
   _extend_commands = commands;
   ncb_callback = callback;
   _NCB_CATCH_ESP_ERR(ncb_wifi_init(), "ncb_wifi_init");
@@ -129,9 +146,9 @@ esp_err_t ncb_config_start(const char *filename, const struct ncb_command *comma
   if (ncb_callback)
     ncb_callback(NCB_WAIT_CONNECT);
 
-  nordic_uart_start(filename, _nordic_uart_callback);
+  nordic_uart_start(_ncb_ble_device_name, _nordic_uart_callback);
 
-  _ncb_uart_task = xTaskCreate(_uart_incoming_task, "_uart_incoming_task", 2048 * 6, NULL, 1, &_ncb_uart_task);
+  xTaskCreate(_uart_incoming_task, "_uart_incoming_task", 2048 * 6, NULL, 1, &_ncb_uart_task);
   return ESP_OK;
 
 esp_failed:
@@ -141,5 +158,13 @@ esp_failed:
 void ncb_config_end() {
   vTaskDelete(_ncb_uart_task);
   _ncb_uart_task = NULL;
+  free(_ncb_ble_device_name);
+  _ncb_ble_device_name = NULL;
+  free(_ncb_firmware_version);
+  _ncb_firmware_version = NULL;
+  free(_ncb_device_type);
+  _ncb_device_type = NULL;
+  free(_ncb_device_id);
+  _ncb_device_id = NULL;
   nordic_uart_stop();
 }

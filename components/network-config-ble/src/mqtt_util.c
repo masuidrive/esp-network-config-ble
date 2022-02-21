@@ -26,11 +26,11 @@ esp_failed:
 static bool strncpy_nvs_value(char *dest, nvs_handle_t nvs_handle, const char *name, size_t size) {
   const char *val = _get_nvs_value(nvs_handle, name);
   if (val) {
-    strncpy(dest, val, size);
+    strncpy(dest, val, size - 1);
     free((void *)val);
     return true;
   } else {
-    strncpy(dest, "", size);
+    strncpy(dest, "", size - 1);
     free((void *)val);
     return false;
   }
@@ -103,11 +103,11 @@ static void _mqtt_event_handler(void *handler_args, esp_event_base_t base, int32
           cJSON *uuid = cJSON_GetObjectItem(root, "uuid");
 
           if (uuid && uuid->type == cJSON_String) {
-            strncpy(response, "{\"event\":\"receive_message\",\"uuid\":\"", resp_size);
-            strncat(response, uuid->valuestring, resp_size);
-            strncat(response, "\"}", resp_size);
+            strncpy(response, "{\"event\":\"receive_message\",\"uuid\":\"", resp_size - 1);
+            strncat(response, uuid->valuestring, resp_size - strlen(uuid->valuestring) - 1);
+            strncat(response, "\"}", resp_size - 1);
           } else {
-            strncpy(response, "{\"event\":\"receive_message\"}", resp_size);
+            strncpy(response, "{\"event\":\"receive_message\"}", resp_size - 1);
           }
           cJSON_Delete(root);
 

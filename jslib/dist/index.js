@@ -304,7 +304,7 @@ var BLESmartConfig = /** @class */ (function () {
                     case 2:
                         _a.trys.push([2, 7, , 9]);
                         this.uart.clear();
-                        return [4 /*yield*/, this.uart.sendln("DEVICE_ID")];
+                        return [4 /*yield*/, this.uart.sendln("GET_STR device_id")];
                     case 3:
                         _a.sent();
                         return [4 /*yield*/, this.uart.readline()];

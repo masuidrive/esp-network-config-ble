@@ -22,9 +22,14 @@
 #include <mqtt_client.h>
 #include <nvs_flash.h>
 
-#define _NCB_NVS_NAMESPACE "bleconfig"
+#define _NCB_NVS_NAMESPACE "ncb"
 #define _NCB_WIFI_CONNECT_RETRY 5 // Number of retries during connection test
 #define _NCB_CONFIG_VALUE_SIZE 4000
+
+extern char *_ncb_ble_device_name;
+extern char *_ncb_firmware_version;
+extern char *_ncb_device_id;
+extern char *_ncb_device_type;
 
 // clang-format off
 extern const char* _ncb_esp_err_msg;

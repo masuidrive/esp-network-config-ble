@@ -184,7 +184,7 @@ export class BLESmartConfig {
 
     try {
       this.uart.clear();
-      await this.uart.sendln("DEVICE_ID");
+      await this.uart.sendln("GET_STR device_id");
       const result = await this.uart.readline();
       await this.uart.waitBlank();
       await this.state.moveTo(State.Connected);
