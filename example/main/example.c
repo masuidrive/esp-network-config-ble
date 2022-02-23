@@ -20,7 +20,7 @@ struct ncb_command *extend_commands[] = {
 
 void app_main() { //
   ESP_ERROR_CHECK(esp_event_loop_create_default());
-  ncb_config_start("DeviceID", "Nordic UART", "1.0.0", "0000",extend_commands, NULL);
+  ncb_config_start("DeviceID", "Nordic UART", "1.0.0", "0000", extend_commands, NULL);
 }
 
 void command_DEBUG(int argc, const char *args[], int datac, const char *data[]) {
