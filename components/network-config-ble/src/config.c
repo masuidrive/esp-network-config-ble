@@ -18,7 +18,7 @@ static const struct ncb_command default_commands[] = {
 
 static const struct ncb_command *_extend_commands;
 static size_t _extend_commands_count = 0;
-static void (*ncb_callback)(enum ncb_callback_type) = NULL;
+static void (*_ncb_callback)(enum ncb_callback_type) = NULL;
 static TaskHandle_t _ncb_uart_task = NULL;
 
 const char *_ncb_esp_err_msg = NULL;
@@ -41,7 +41,7 @@ static void _run_command(const struct ncb_command *command, char *item) {
   }
 
   if (command->multiline) {
-    char *data[CONFIG_NORDIC_UART_MAX_LINE_LENGTH];
+    char *data[CONFIG_NORDIC_UART_MAX_LINE_LENGTH] = {};
 
     size_t dataline_size;
     int line_count = atoi(args[--argc]);
@@ -52,17 +52,22 @@ static void _run_command(const struct ncb_command *command, char *item) {
       return;
     }
 
+    bool break_multiline = false;
     for (int i = 0; i < line_count; ++i) {
       char *dataline = (char *)xRingbufferReceive(nordic_uart_rx_buf_handle, &dataline_size, portMAX_DELAY);
       size_t dataline_len = strlen(dataline);
-
-      data[i] = malloc(dataline_len + 1);
-      strcpy(data[i], dataline);
+      if (strcmp(dataline, "\003") == 0) { // press Ctrl-C or disconnected
+        break_multiline = true;
+        break;
+      } else {
+        data[i] = malloc(dataline_len + 1);
+        strcpy(data[i], dataline);
+      }
 
       vRingbufferReturnItem(nordic_uart_rx_buf_handle, (void *)dataline);
     };
-
-    command->func(argc, (const char **)args, line_count, (const char **)data);
+    if (!break_multiline)
+      command->func(argc, (const char **)args, line_count, (const char **)data);
     for (int j = 0; j < line_count; ++j)
       free(data[j]);
   } else {
@@ -75,7 +80,7 @@ static void _uart_incoming_task(void *parameter) {
     size_t item_size;
     char *line = (char *)xRingbufferReceive(nordic_uart_rx_buf_handle, &item_size, portMAX_DELAY);
 
-    if (line) {
+    if (line && strcmp(line, "\003") != 0) {
       ESP_LOGI(_TAG, "LINE: %s", line);
 
       char *command_name;
@@ -112,11 +117,11 @@ static void _uart_incoming_task(void *parameter) {
 }
 
 static void _nordic_uart_callback(enum nordic_uart_callback_type callback_type) {
-  if (ncb_callback) {
+  if (_ncb_callback) {
     if (callback_type == NORDIC_UART_DISCONNECTED) {
-      ncb_callback(NCB_WAIT_CONNECT);
+      _ncb_callback(NCB_WAIT_CONNECT);
     } else if (callback_type == NORDIC_UART_CONNECTED) {
-      ncb_callback(NCB_PROCESSING);
+      _ncb_callback(NCB_PROCESSING);
     }
   }
 }
@@ -141,12 +146,12 @@ esp_err_t ncb_config_start(const char *device_id, const char *ble_device_name, c
   _ncb_device_type = alloc_strcpy(device_type);
   _extend_commands = commands;
   _extend_commands_count = commands_count;
-  ncb_callback = callback;
+  _ncb_callback = callback;
   _NCB_CATCH_ESP_ERR(ncb_wifi_init(), "ncb_wifi_init");
   _NCB_CATCH_ESP_ERR(esp_wifi_start(), "esp_wifi_start");
 
-  if (ncb_callback)
-    ncb_callback(NCB_WAIT_CONNECT);
+  if (_ncb_callback)
+    _ncb_callback(NCB_WAIT_CONNECT);
 
   nordic_uart_start(_ncb_ble_device_name, _nordic_uart_callback);
 
