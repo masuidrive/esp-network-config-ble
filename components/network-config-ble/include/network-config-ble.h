@@ -16,8 +16,8 @@ enum ncb_callback_type {
 };
 
 esp_err_t ncb_config_start(const char *device_id, const char *ble_device_name, const char *firmware_version,
-                           const char *device_type, const struct ncb_command *commands[],
-                           void (*callback)(enum ncb_callback_type callback_type));
+                           const char *device_type, const struct ncb_command extend_commands[],
+                           size_t extend_commands_count, void (*callback)(enum ncb_callback_type callback_type));
 
 void ncb_config_stop();
 

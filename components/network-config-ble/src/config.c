@@ -16,7 +16,8 @@ static const struct ncb_command default_commands[] = {
     {.name = "OTA", .multiline = false, .func = _ncb_command_OTA},
 };
 
-static const struct ncb_command **_extend_commands = NULL;
+static const struct ncb_command *_extend_commands;
+static size_t _extend_commands_count = 0;
 static void (*ncb_callback)(enum ncb_callback_type) = NULL;
 static TaskHandle_t _ncb_uart_task = NULL;
 
@@ -82,10 +83,10 @@ static void _uart_incoming_task(void *parameter) {
       bool executed = false;
 
       if (command_name) {
-        if (_extend_commands) {
-          for (const struct ncb_command **commands = _extend_commands; *commands; ++commands) {
-            if (strcasecmp(command_name, (*commands)->name) == 0) {
-              _run_command(*commands, item);
+        if (_extend_commands_count > 0) {
+          for (int i = 0; i < _extend_commands_count; ++i) {
+            if (strcasecmp(command_name, _extend_commands[i].name) == 0) {
+              _run_command(&_extend_commands[i], item);
               executed = true;
               break;
             }
@@ -129,7 +130,7 @@ static char *alloc_strcpy(const char *str) {
 }
 
 esp_err_t ncb_config_start(const char *device_id, const char *ble_device_name, const char *firmware_version,
-                           const char *device_type, const struct ncb_command *commands[],
+                           const char *device_type, const struct ncb_command commands[], size_t commands_count,
                            void (*callback)(enum ncb_callback_type)) {
   if (_ncb_uart_task)
     return ESP_FAIL;
@@ -139,6 +140,7 @@ esp_err_t ncb_config_start(const char *device_id, const char *ble_device_name, c
   _ncb_firmware_version = alloc_strcpy(firmware_version);
   _ncb_device_type = alloc_strcpy(device_type);
   _extend_commands = commands;
+  _extend_commands_count = commands_count;
   ncb_callback = callback;
   _NCB_CATCH_ESP_ERR(ncb_wifi_init(), "ncb_wifi_init");
   _NCB_CATCH_ESP_ERR(esp_wifi_start(), "esp_wifi_start");
