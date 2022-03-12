@@ -23,14 +23,14 @@ esp_failed:
   return NULL;
 }
 
-static bool strncpy_nvs_value(char *dest, nvs_handle_t nvs_handle, const char *name, size_t size) {
+static bool strlcpy_nvs_value(char *dest, nvs_handle_t nvs_handle, const char *name, size_t size) {
   const char *val = _get_nvs_value(nvs_handle, name);
   if (val) {
-    strncpy(dest, val, size - 1);
+    strlcpy(dest, val, size - 1);
     free((void *)val);
     return true;
   } else {
-    strncpy(dest, "", size - 1);
+    strlcpy(dest, "", size - 1);
     free((void *)val);
     return false;
   }
@@ -103,11 +103,11 @@ static void _mqtt_event_handler(void *handler_args, esp_event_base_t base, int32
           cJSON *uuid = cJSON_GetObjectItem(root, "uuid");
 
           if (uuid && uuid->type == cJSON_String) {
-            strncpy(response, "{\"event\":\"receive_message\",\"uuid\":\"", resp_size - 1);
-            strncat(response, uuid->valuestring, resp_size - strlen(uuid->valuestring) - 1);
-            strncat(response, "\"}", resp_size - 1);
+            strlcpy(response, "{\"event\":\"receive_message\",\"uuid\":\"", resp_size - 1);
+            strlcat(response, uuid->valuestring, resp_size - strlen(uuid->valuestring) - 1);
+            strlcat(response, "\"}", resp_size - 1);
           } else {
-            strncpy(response, "{\"event\":\"receive_message\"}", resp_size - 1);
+            strlcpy(response, "{\"event\":\"receive_message\"}", resp_size - 1);
           }
           cJSON_Delete(root);
 
@@ -162,8 +162,8 @@ esp_err_t ncb_mqtt_connect_with_nvs(ncb_mqtt_message_receiver_callback message_c
   // free((void *)mqtt_cfg.client_key_pem);
   // free((void *)mqtt_cfg.cert_pem);
 
-  strncpy_nvs_value(_topic, nvs_handle, "mqtt_dev_topic", sizeof(_topic));
-  strncpy_nvs_value(_response_topic, nvs_handle, "mqtt_res_topic", sizeof(_response_topic));
+  strlcpy_nvs_value(_topic, nvs_handle, "mqtt_dev_topic", sizeof(_topic));
+  strlcpy_nvs_value(_response_topic, nvs_handle, "mqtt_res_topic", sizeof(_response_topic));
   ESP_LOGI(_TAG, "mqtt_dev_topic=%s", _topic);
   ESP_LOGI(_TAG, "mqtt_res_topic=%s", _response_topic);
 

@@ -61,8 +61,9 @@ static void _run_command(const struct ncb_command *command, char *item) {
         break_multiline = true;
         break;
       } else {
-        data[i] = malloc(dataline_len + 1);
-        strcpy(data[i], dataline);
+        size_t size = dataline_len + 1;
+        data[i] = malloc(size);
+        strlcpy(data[i], dataline, size);
       }
 
       vRingbufferReturnItem(nordic_uart_rx_buf_handle, (void *)dataline);
@@ -130,8 +131,9 @@ static void _nordic_uart_callback(enum nordic_uart_callback_type callback_type) 
 static char *alloc_strcpy(const char *str) {
   if (str == NULL)
     return NULL;
-  char *dest = malloc(strlen(str) + 1);
-  strcpy(dest, str);
+  size_t size = strlen(str) + 1;
+  char *dest = malloc(size);
+  strlcpy(dest, str, size);
   return dest;
 }
 
