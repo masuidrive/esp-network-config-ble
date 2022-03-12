@@ -1,6 +1,6 @@
 #include "network-config-ble-internal.h"
 
-static const char *_TAG = "NCB_OTA";
+static const char *_TAG = "NCB_OTA_BT";
 
 static int _ota_size = 0;
 static const esp_partition_t *_ota_part;
@@ -16,7 +16,7 @@ static void _ota_receiver(struct ble_gatt_access_ctxt *ctxt) {
   }
 }
 
-void _ncb_command_OTA(int argc, const char *args[], int datac, const char *data[]) {
+void _ncb_command_OTA_BT(int argc, const char *args[], int datac, const char *data[]) {
   if (argc >= 1) {
     _ota_size = atoi(args[0]);
     _ota_part = esp_ota_get_next_update_partition(NULL);

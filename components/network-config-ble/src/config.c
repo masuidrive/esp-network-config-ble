@@ -13,7 +13,8 @@ static const struct ncb_command default_commands[] = {
     {.name = "CHECK_WIFI", .multiline = false, .func = _ncb_command_CHECK_WIFI},
     {.name = "CHECK_MQTT", .multiline = false, .func = _ncb_command_CHECK_MQTT},
     {.name = "RESTART", .multiline = false, .func = _ncb_command_RESTART},
-    {.name = "OTA", .multiline = false, .func = _ncb_command_OTA},
+    {.name = "OTA_BT", .multiline = false, .func = _ncb_command_OTA_BT},
+    {.name = "OTA_HTTPS", .multiline = false, .func = _ncb_command_OTA_HTTPS},
 };
 
 static const struct ncb_command *_extend_commands;

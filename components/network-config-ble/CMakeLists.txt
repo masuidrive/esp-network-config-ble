@@ -17,4 +17,5 @@ idf_component_register(
     mqtt
     nimble-nordic-uart
     app_update
+    esp_https_ota
 )

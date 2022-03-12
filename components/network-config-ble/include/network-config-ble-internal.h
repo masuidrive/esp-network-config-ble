@@ -14,6 +14,7 @@
 #include <sys/time.h>
 
 #include <cJSON.h>
+#include <esp_https_ota.h>
 #include <esp_log.h>
 #include <esp_netif.h>
 #include <esp_ota_ops.h>
@@ -71,4 +72,5 @@ void _ncb_command_ERASE_ALL(int argc, const char *args[], int datac, const char 
 void _ncb_command_CHECK_MQTT(int argc, const char *args[], int datac, const char *data[]);
 void _ncb_command_CHECK_WIFI(int argc, const char *args[], int datac, const char *data[]);
 void _ncb_command_RESTART(int argc, const char *args[], int datac, const char *data[]);
-void _ncb_command_OTA(int argc, const char *args[], int datac, const char *data[]);
+void _ncb_command_OTA_BT(int argc, const char *args[], int datac, const char *data[]);
+void _ncb_command_OTA_HTTPS(int argc, const char *args[], int datac, const char *data[]);
