@@ -14,12 +14,11 @@ static const struct ncb_command default_commands[] = {
     {.name = "CHECK_MQTT", .multiline = false, .func = _ncb_command_CHECK_MQTT},
     {.name = "RESTART", .multiline = false, .func = _ncb_command_RESTART},
     {.name = "OTA_BT", .multiline = false, .func = _ncb_command_OTA_BT},
-    {.name = "OTA_HTTPS", .multiline = false, .func = _ncb_command_OTA_HTTPS},
+    {.name = "OTA_HTTPS", .multiline = true, .func = _ncb_command_OTA_HTTPS},
 };
 
 static const struct ncb_command *_extend_commands;
 static size_t _extend_commands_count = 0;
-static void (*_ncb_callback)(enum ncb_callback_type) = NULL;
 static TaskHandle_t _ncb_uart_task = NULL;
 
 const char *_ncb_esp_err_msg = NULL;
@@ -29,6 +28,7 @@ char *_ncb_ble_device_name = NULL;
 char *_ncb_firmware_version = NULL;
 char *_ncb_device_id = NULL;
 char *_ncb_device_type = NULL;
+void (*_ncb_config_callback)(enum ncb_callback_type, int param) = NULL;
 
 static void _run_command(const struct ncb_command *command, char *item) {
   char *args[_NCB_UART_COMMAND_MAX_ARGC];
@@ -119,11 +119,11 @@ static void _uart_incoming_task(void *parameter) {
 }
 
 static void _nordic_uart_callback(enum nordic_uart_callback_type callback_type) {
-  if (_ncb_callback) {
+  if (_ncb_config_callback) {
     if (callback_type == NORDIC_UART_DISCONNECTED) {
-      _ncb_callback(NCB_WAIT_CONNECT);
+      _ncb_config_callback(NCB_WAIT_CONNECT, 0);
     } else if (callback_type == NORDIC_UART_CONNECTED) {
-      _ncb_callback(NCB_PROCESSING);
+      _ncb_config_callback(NCB_PROCESSING, 0);
     }
   }
 }
@@ -139,7 +139,7 @@ static char *alloc_strcpy(const char *str) {
 
 esp_err_t ncb_config_start(const char *device_id, const char *ble_device_name, const char *firmware_version,
                            const char *device_type, const struct ncb_command commands[], size_t commands_count,
-                           void (*callback)(enum ncb_callback_type)) {
+                           void (*callback)(enum ncb_callback_type, int param)) {
   if (_ncb_uart_task)
     return ESP_FAIL;
 
@@ -149,12 +149,12 @@ esp_err_t ncb_config_start(const char *device_id, const char *ble_device_name, c
   _ncb_device_type = alloc_strcpy(device_type);
   _extend_commands = commands;
   _extend_commands_count = commands_count;
-  _ncb_callback = callback;
+  _ncb_config_callback = callback;
   _NCB_CATCH_ESP_ERR(ncb_wifi_init(), "ncb_wifi_init");
   _NCB_CATCH_ESP_ERR(esp_wifi_start(), "esp_wifi_start");
 
-  if (_ncb_callback)
-    _ncb_callback(NCB_WAIT_CONNECT);
+  if (_ncb_config_callback)
+    _ncb_config_callback(NCB_WAIT_CONNECT, 0);
 
   nordic_uart_start(_ncb_ble_device_name, _nordic_uart_callback);
 
