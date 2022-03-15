@@ -4,7 +4,6 @@ static const char *_TAG = "NCB_OTA_HTTPS";
 
 void _ncb_command_OTA_HTTPS(int argc, const char *args[], int datac, const char *data[]) {
   if (argc >= 1) {
-
     char *cert = malloc(_NCB_CONFIG_VALUE_SIZE);
     cert[0] = '\0';
     size_t cert_size = 0;
@@ -23,6 +22,8 @@ void _ncb_command_OTA_HTTPS(int argc, const char *args[], int datac, const char 
       }
     }
 
+    _NCB_CATCH_ESP_ERR(ncb_wifi_connect_with_nvs(10, NULL), "Can't connect WiFi");
+
     esp_http_client_config_t config = {
         .url = args[0],
         .cert_pem = cert,
@@ -40,7 +41,7 @@ void _ncb_command_OTA_HTTPS(int argc, const char *args[], int datac, const char 
       err = esp_https_ota_perform(https_ota_handle);
 
       int image_size = esp_https_ota_get_image_size(https_ota_handle);
-      if (image_size < 1) {
+      if (image_size > 0) {
         int progress = (esp_https_ota_get_image_len_read(https_ota_handle) * 100) / image_size;
         if (_ncb_config_callback)
           _ncb_config_callback(NCB_OTA_PROCESSING, progress);

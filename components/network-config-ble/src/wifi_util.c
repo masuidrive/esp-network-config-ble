@@ -207,16 +207,19 @@ bool ncb_wifi_is_connected() { //
 
 bool ncb_wifi_is_configured() { //
   nvs_handle_t nvs_handle;
+  puts("open?");
   _NCB_CATCH_ESP_ERR(nvs_open(_NCB_NVS_NAMESPACE, NVS_READONLY, &nvs_handle), "nvs_open");
+  puts("opened");
 
   size_t ssid_size;
   _NCB_CATCH_ESP_ERR(nvs_get_str(nvs_handle, "ssid", NULL, &ssid_size), "nvs_get_str: ssid size");
+  puts("get");
   nvs_close(nvs_handle);
+  printf("ssid=%d\n", ssid_size);
 
   return ssid_size > 0;
 
 esp_failed:
-  puts("configured error");
   nvs_close(nvs_handle);
 
   return false;
