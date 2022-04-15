@@ -155,6 +155,13 @@ esp_err_t ncb_mqtt_connect_with_nvs(ncb_mqtt_message_receiver_callback message_c
       .client_key_pem = (const char *)_get_nvs_value(nvs_handle, "mqtt_priv"),
       .cert_pem = (const char *)_get_nvs_value(nvs_handle, "mqtt_root_ca"),
   };
+
+  if (mqtt_cfg.uri == NULL || strlen(mqtt_cfg.uri) == 0 || mqtt_cfg.client_cert_pem == NULL ||
+      strlen(mqtt_cfg.client_cert_pem) == 0 || mqtt_cfg.client_key_pem == NULL ||
+      strlen(mqtt_cfg.client_key_pem) == 0 || mqtt_cfg.cert_pem == NULL || strlen(mqtt_cfg.cert_pem) == 0) {
+    return ESP_ERR_INVALID_ARG;
+  }
+
   _client = esp_mqtt_client_init(&mqtt_cfg);
   // TODO: ここで解放していいの？<ダメだった
   // free((void *)mqtt_cfg.uri);
