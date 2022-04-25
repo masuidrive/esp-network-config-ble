@@ -18,7 +18,10 @@ doxygen_warnings.txt
 /build*/
 /tmp
 /node_modules
+/jslib/dist
 
 # Ignore certificate files
 *.pem
 *.crt
+
+#

@@ -1,6 +1,9 @@
 {
   "name": "@masuidrive/esp-network-config-ble",
-  "version": "1.0.0",
+  "publishConfig": {
+    "access": "public"
+  },
+  "version": "0.0.0-development",
   "homepage": "https://github.com/masuidrive/esp-network-config-ble",
   "description": "",
   "dependencies": {},
@@ -22,6 +25,10 @@
   "author": "Yuichiro MASUI <masui@masuidrive.jp>",
   "license": "Apache-2.0",
   "private": false,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/masuidrive/esp-network-config-ble.git"
+  },
   "release": {
     "plugins": [
       "@semantic-release/commit-analyzer",
