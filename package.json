@@ -1,5 +1,5 @@
 {
-  "name": "esp-network-config-ble",
+  "name": "@masuidrive/esp-network-config-ble",
   "version": "1.0.0",
   "homepage": "https://github.com/masuidrive/esp-network-config-ble",
   "description": "",
