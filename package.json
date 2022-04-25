@@ -16,7 +16,7 @@
   "files": [
     "jslib/dist"
   ],
-  "main": "jslib/dist/index.js",
+  "module": "jslib/dist/index.js",
   "scripts": {
     "build": "cd jslib && tsc",
     "semantic-release": "semantic-release --branches main",
