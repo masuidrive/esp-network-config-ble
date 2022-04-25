@@ -21,6 +21,7 @@
   },
   "author": "Yuichiro MASUI <masui@masuidrive.jp>",
   "license": "Apache-2.0",
+  "private": false,
   "release": {
     "plugins": [
       "@semantic-release/commit-analyzer",
