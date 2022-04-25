@@ -3,12 +3,12 @@
   "version": "1.0.0",
   "homepage": "https://github.com/masuidrive/esp-network-config-ble",
   "description": "",
-  "dependencies": {
-  },
+  "dependencies": {},
   "devDependencies": {
-    "typescript": "^4.1.2",
     "@types/events": "^3.0.0",
-    "@types/web-bluetooth": "^0.0.9"
+    "@types/web-bluetooth": "^0.0.9",
+    "semantic-release": "^19.0.2",
+    "typescript": "^4.1.2"
   },
   "files": [
     "jslib/dist"
@@ -16,8 +16,20 @@
   "main": "jslib/dist/index.js",
   "scripts": {
     "build": "cd jslib && tsc",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "semantic-release": "semantic-release --branches main",
+    "test": "echo \"Error: no test specified\" && exit 0"
   },
   "author": "Yuichiro MASUI <masui@masuidrive.jp>",
-  "license": "Apache-2.0"
+  "license": "Apache-2.0",
+  "release": {
+    "plugins": [
+      "@semantic-release/commit-analyzer",
+      "@semantic-release/release-notes-generator",
+      "@semantic-release/github",
+      "@semantic-release/npm"
+    ],
+    "branches": [
+      "main"
+    ]
+  }
 }
