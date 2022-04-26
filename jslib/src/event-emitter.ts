@@ -1,3 +1,5 @@
+// https://basarat.gitbook.io/typescript/main-1/typed-event#reference-typedevent
+// https://typescript-jp.gitbook.io/deep-dive/main-1/typed-event
 export interface Listener<T> {
   (event: T): any;
 }
