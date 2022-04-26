@@ -1,8 +1,8 @@
 import { TypedEvent } from "./event-emitter";
 
-const BLE_MTU = 128;
-
 export class BLEUART {
+  BLE_MTU = 128;
+
   bluetoothDevice?: BluetoothDevice;
   namePrefix: string;
   serviceUUID: string;
@@ -68,8 +68,8 @@ export class BLEUART {
 
   async send(text: string) {
     const arrayBuffe = new TextEncoder().encode(text);
-    for (let i = 0; i < arrayBuffe.length; i += BLE_MTU) {
-      await this.rxChar!.writeValue(arrayBuffe.slice(i, i + BLE_MTU));
+    for (let i = 0; i < arrayBuffe.length; i += this.BLE_MTU) {
+      await this.rxChar!.writeValue(arrayBuffe.slice(i, i + this.BLE_MTU));
     }
   }
 
