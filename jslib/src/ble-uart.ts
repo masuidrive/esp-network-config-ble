@@ -1,8 +1,8 @@
-import { EventEmitter } from "events";
+import { TypedEvent } from "event-emitter";
 
 const BLE_MTU = 128;
 
-export class BLEUART extends EventEmitter {
+export class BLEUART {
   bluetoothDevice?: BluetoothDevice;
   namePrefix: string;
   serviceUUID: string;
@@ -11,13 +11,16 @@ export class BLEUART extends EventEmitter {
   rxChar?: BluetoothRemoteGATTCharacteristic;
   txChar?: BluetoothRemoteGATTCharacteristic;
 
+  onDisconnect = new TypedEvent<BLEUART>();
+  onReceive = new TypedEvent<string>();
+  onError = new TypedEvent<unknown>();
+
   constructor(
     namePrefix: string,
     serviceUUID = "6e400001-b5a3-f393-e0a9-e50e24dcca9e",
     rxUUID = "6e400002-b5a3-f393-e0a9-e50e24dcca9e",
     txUUID = "6e400003-b5a3-f393-e0a9-e50e24dcca9e"
   ) {
-    super();
     this.namePrefix = namePrefix;
     this.serviceUUID = serviceUUID;
     this.rxUUID = rxUUID;
@@ -34,10 +37,9 @@ export class BLEUART extends EventEmitter {
       });
       if (this.bluetoothDevice === undefined) return false;
 
-      this.bluetoothDevice!.addEventListener(
-        "gattserverdisconnected",
-        this.onDisconnected.bind(this) as any
-      );
+      this.bluetoothDevice!.addEventListener("gattserverdisconnected", () => {
+        this.onDisconnect.emit(this);
+      });
 
       const server = await this.bluetoothDevice!.gatt!.connect();
       const service = await server.getPrimaryService(this.serviceUUID);
@@ -62,10 +64,6 @@ export class BLEUART extends EventEmitter {
 
   isConnected() {
     return this.bluetoothDevice !== undefined;
-  }
-
-  onDisconnected(_: BluetoothDevice, ev: Event) {
-    this.emit("disconnect");
   }
 
   async send(text: string) {
@@ -127,13 +125,13 @@ export class BLEUART extends EventEmitter {
               this.waitBlankResolve();
             }
 
-            this.emit("receive", line);
+            this.onReceive.emit(line);
           }
         }
         this.rx_buffer = splited.shift() ?? "";
       } catch (error) {
         console.error(error);
-        this.emit("error", error);
+        this.onError.emit(error);
       }
     }
   }

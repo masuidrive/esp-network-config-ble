@@ -73,9 +73,8 @@ export class BLESmartConfig {
       this.transitions,
       onChange
     );
-    this.uart.addListener("disconnect", () =>
-      this.state.moveTo(State.Disconnected)
-    );
+    this.uart.onDisconnect.on(() => this.state.moveTo(State.Disconnected));
+    this.uart.onError.on((error) => console.error(error));
   }
 
   async connect(): Promise<boolean> {
