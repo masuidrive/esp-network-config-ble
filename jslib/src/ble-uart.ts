@@ -1,4 +1,4 @@
-import { TypedEvent } from "event-emitter";
+import { TypedEvent } from "./event-emitter";
 
 const BLE_MTU = 128;
 
