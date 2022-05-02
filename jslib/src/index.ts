@@ -16,3 +16,4 @@ export {
   PageUpdating,
   PageFinished,
 } from "./wizard";
+export default 1;
