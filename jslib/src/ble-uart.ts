@@ -27,6 +27,10 @@ export class BLEUART {
     this.txUUID = txUUID;
   }
 
+  get supported(): boolean {
+    return !!navigator.bluetooth;
+  }
+
   async start(): Promise<boolean> {
     try {
       this.bluetoothDevice = await navigator.bluetooth.requestDevice({

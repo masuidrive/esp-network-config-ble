@@ -1,0 +1,27 @@
+<script type="importmap">
+  {
+    "imports": {
+      "@masuidrive/esp-network-config-ble": "http://localhost:3000/jslib/dist/index.js?module",
+      "@hotwired/turbo": "https://unpkg.com/@hotwired/turbo?module"
+    }
+  }
+</script>
+<script type="module">
+  import { BLESmartConfigWizard } from '@masuidrive/esp-network-config-ble';
+  const wizard = new BLESmartConfigWizard("A1-", (deviceId) => {})
+  wizard.start();
+
+  function connect() {
+    console.log("Pushed connect");
+    wizard.openDevice();
+  }
+  document.getElementById("connect").addEventListener("click", connect);
+  console.log(document.getElementById("connect"));
+console.log(BLESmartConfigWizard);
+</script>
+
+<div id="root">
+<button id="connect">connect</button>
+
+
+</div>

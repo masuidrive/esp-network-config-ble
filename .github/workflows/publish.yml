@@ -26,9 +26,9 @@ jobs:
         uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.node-version }}
-      - run: npm ci
-      - run: npm run build --if-present
-      - run: npm test
+      - run: cd jslib && npm ci
+      - run: cd jslib && npm run build --if-present
+      - run: cd jslib && npm test
 
   publish:
     if: ${{ github.ref == 'refs/heads/main' }}
@@ -40,9 +40,9 @@ jobs:
         uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.node-version }}
-      - run: npm ci
-      - run: npm run build
-      - run: npm run semantic-release
+      - run: cd jslib && npm ci
+      - run: cd jslib && npm run build
+      - run: cd jslib && npm run semantic-release
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
