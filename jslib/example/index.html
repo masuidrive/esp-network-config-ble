@@ -11,7 +11,6 @@
     }
   </script>
   <script type="module">
-    console.log(window.import)
     function onError(err) {
       console.error('Error registering service-worker:', err)
       document.getElementById('root').innerText = err.toString()
@@ -29,6 +28,6 @@
   </script>
 </head>
 <body>
-  <div id="root">loading...</div>
+  <div id="root">Only for Chrome</div>
 </body>
 </html>

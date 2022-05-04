@@ -2,13 +2,12 @@ import { BLEUART } from "./ble-uart";
 import { SSIDItem, BLESmartConfig, IoTConfig } from "./configure";
 import { TypedEvent } from "./event-emitter";
 
-export const enum PageStartupState {
-  Ready,
-  Connecting,
-  Disconnected,
-  NotSupported,
-  ConnectError,
-}
+export type PageStartupState =
+  | "Ready"
+  | "Connecting"
+  | "Disconnected"
+  | "NotSupported"
+  | "ConnectError";
 
 export interface PageStartup {
   state: PageStartupState;
@@ -25,18 +24,17 @@ export interface PageSelectSSID {
   listSSID: SSIDItem[];
 }
 
-export const enum PageUpdatingState {
-  ConnectingWifi,
-  ConnectWiFiError,
-  SetVariables,
-  Fetching,
-  FetchError,
-  ConnectingMQTT,
-  ConnectMQTTError,
-  Other,
-  OtherError,
-  Finished,
-}
+export type PageUpdatingState =
+  | "ConnectingWifi"
+  | "ConnectWiFiError"
+  | "SetVariables"
+  | "Fetching"
+  | "FetchError"
+  | "ConnectingMQTT"
+  | "ConnectMQTTError"
+  | "Other"
+  | "OtherError"
+  | "Finished";
 
 export interface PageUpdating {
   state: PageUpdatingState;
@@ -67,7 +65,7 @@ export class BLESmartConfigWizard {
     this.uart.disconnect();
     if (this.uart.supported) {
       this.pageStartup.emit({
-        state: PageStartupState.Ready,
+        state: "Ready",
       });
     }
     return this.uart.supported;
@@ -78,13 +76,13 @@ export class BLESmartConfigWizard {
     // Choice device
     try {
       this.pageStartup.emit({
-        state: PageStartupState.Connecting,
+        state: "Connecting",
       });
       if (!(await this.uart.start())) throw new Error();
     } catch (e) {
       this.uart.disconnect();
       this.pageStartup.emit({
-        state: PageStartupState.ConnectError,
+        state: "ConnectError",
       });
       return;
     }
@@ -96,7 +94,7 @@ export class BLESmartConfigWizard {
     } catch (e) {
       this.smartConfig = undefined;
       this.pageStartup.emit({
-        state: PageStartupState.ConnectError,
+        state: "ConnectError",
       });
       return;
     }
@@ -129,7 +127,7 @@ export class BLESmartConfigWizard {
     // connect WiFi
     try {
       this.pageUpdating.emit({
-        state: PageUpdatingState.ConnectingWifi,
+        state: "ConnectingWifi",
       });
       const result_set_wifi = await this.smartConfig!.set_wifi(
         ssid,
@@ -140,7 +138,7 @@ export class BLESmartConfigWizard {
       if (!result_check_wifi) throw new Error();
     } catch (e) {
       this.pageUpdating.emit({
-        state: PageUpdatingState.ConnectWiFiError,
+        state: "ConnectWiFiError",
       });
       return;
     }
@@ -149,14 +147,14 @@ export class BLESmartConfigWizard {
     let config: IoTConfig | undefined = undefined;
     try {
       this.pageUpdating.emit({
-        state: PageUpdatingState.Fetching,
+        state: "Fetching",
       });
       const device_id = await this.smartConfig!.device_id();
       config = await this.fetchConfig(device_id);
       if (config === undefined) throw new Error();
     } catch (e) {
       this.pageUpdating.emit({
-        state: PageUpdatingState.FetchError,
+        state: "FetchError",
       });
       return;
     }
@@ -164,7 +162,7 @@ export class BLESmartConfigWizard {
     // Set MQTT and check it
     try {
       this.pageUpdating.emit({
-        state: PageUpdatingState.ConnectingMQTT,
+        state: "ConnectingMQTT",
       });
       const result_set_mqtt = await this.smartConfig!.set_mqtt(config!);
       if (!result_set_mqtt) throw new Error();
@@ -172,7 +170,7 @@ export class BLESmartConfigWizard {
       if (!result_check_mqtt) throw new Error();
     } catch (e) {
       this.pageUpdating.emit({
-        state: PageUpdatingState.ConnectMQTTError,
+        state: "ConnectMQTTError",
       });
       return;
     }

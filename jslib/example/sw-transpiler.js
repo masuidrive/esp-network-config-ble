@@ -10,6 +10,7 @@ async function getBabel() {
 }
 
 async function handleRequest(request) {
+  if(typeof Babel === "undefined") await getBabel();
   const url = new URL(request.url);
   const r = await fetch(request);
   if (r.status === 200 & url.host === location.host && !!url.pathname.match(/\.(jsx)$/)) {

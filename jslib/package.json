@@ -34,7 +34,8 @@
     "clear": "rimraf dist",
     "build": "rollup -c",
     "semantic-release": "semantic-release --branches main",
-    "test": "echo \"Error: no test specified\" && exit 0"
+    "test": "echo \"Error: no test specified\" && exit 0",
+    "dev": "node ./bin/dev.js"
   },
   "author": "Yuichiro MASUI <masui@masuidrive.jp>",
   "license": "Apache-2.0",

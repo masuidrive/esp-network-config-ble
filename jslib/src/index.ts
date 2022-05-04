@@ -8,12 +8,8 @@ export {
 } from "./configure";
 export {
   BLESmartConfigWizard,
-  PageStartupState,
   PageStartup,
-  PageSelectSSIDState,
   PageSelectSSID,
-  PageUpdatingState,
   PageUpdating,
   PageFinished,
 } from "./wizard";
-export default 1;
