@@ -1,0 +1,8 @@
+## IDF Component Manager Manifest File
+dependencies:
+  masuidrive/nimble-nordic-uart: "^1.0.3"
+  masuidrive/network-config-ble:
+    version: '*'
+    override_path: '../../components/network-config-ble'
+  idf:
+    version: ">=5.0"

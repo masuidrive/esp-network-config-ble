@@ -1,0 +1,9 @@
+dependencies:
+  idf:
+    version: '>=5.0'
+description: A BLE Nordic UART service implementation using NimBLE for ESP-IDF.
+license: Apache-2.0
+maintainers:
+- Yuichiro MASUI <masui@masuidrive.jp>
+url: https://github.com/masuidrive/esp-nimble-nordic-uart
+version: 1.0.3

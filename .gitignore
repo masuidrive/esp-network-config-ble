@@ -25,3 +25,5 @@ doxygen_warnings.txt
 *.crt
 
 #
+sdkconfig
+build

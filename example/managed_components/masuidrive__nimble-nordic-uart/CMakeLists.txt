@@ -1,5 +1,3 @@
-cmake_minimum_required(VERSION 3.5)
-
 idf_component_register(
   REQUIRED_IDF_TARGETS
     "esp32"
@@ -10,10 +8,7 @@ idf_component_register(
   SRC_DIRS
     "src"
   REQUIRES
-    "nimble-nordic-uart"
-    "json"
     "bt"
-    "mqtt"
-    "app_update"
-    "esp_https_ota"
+    "nvs_flash"
+    "esp_ringbuf"
 )

@@ -1,0 +1,10 @@
+version: "1.0.0"
+description: "Network / MQTT configure over BLE for ESP-IDF."
+
+url: "https://github.com/masuidrive/esp-network-config-ble"
+license: "Apache-2.0"
+maintainers:
+  - "Yuichiro MASUI <masui@masuidrive.jp>"
+
+dependencies:
+  idf: ">=5.0"

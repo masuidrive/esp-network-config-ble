@@ -1,0 +1,21 @@
+dependencies:
+  idf:
+    component_hash: null
+    source:
+      type: idf
+    version: 5.1.2
+  masuidrive/network-config-ble:
+    component_hash: null
+    source:
+      path: /workspaces/esp-network-config-ble/components/network-config-ble
+      type: local
+    version: '*'
+  masuidrive/nimble-nordic-uart:
+    component_hash: 80659307952a9ff6d8e539fe3e39aa10217247b366a3b158dca0e2cf488e8bc0
+    source:
+      service_url: https://api.components.espressif.com/
+      type: service
+    version: 1.0.3
+manifest_hash: 1ca71af42d8103e34015ce8c715e9c4ffc407ef6739b53e4d35540b8ed7da44d
+target: esp32
+version: 1.0.0
