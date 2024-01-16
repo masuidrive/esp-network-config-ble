@@ -8,7 +8,7 @@
 
 void command_DEBUG(int argc, const char *args[], int datac, const char *data[]);
 
-struct ncb_command *extend_commands[] = { //
+struct ncb_command extend_commands[] = { //
     {
         .name = "DEBUG",
         .multiline = true,

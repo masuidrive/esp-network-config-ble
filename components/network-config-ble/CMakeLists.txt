@@ -16,4 +16,5 @@ idf_component_register(
     "mqtt"
     "app_update"
     "esp_https_ota"
+    "log"
 )
