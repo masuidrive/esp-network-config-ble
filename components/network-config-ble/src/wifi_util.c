@@ -23,9 +23,9 @@ static esp_err_t _set_ntp() {
     return ESP_OK; // already set system time
   }
 
-  sntp_setoperatingmode(SNTP_OPMODE_POLL);
-  sntp_setservername(0, "pool.ntp.org");
-  sntp_init();
+  esp_sntp_setoperatingmode(SNTP_OPMODE_POLL);
+  esp_sntp_setservername(0, "pool.ntp.org");
+  esp_sntp_init();
 
   while (timeinfo.tm_year < (2020 - 1900)) {
     ESP_LOGI(_TAG, "Waiting for system time to be set... (%d)", retry + 1);

@@ -52,7 +52,7 @@ esp_err_t _send_clear_retained_message() {
 }
 
 static void _mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_t event_id, void *event_data) {
-  ESP_LOGD(_TAG, "Event dispatched from event loop base=%s, event_id=%d", base, event_id);
+  ESP_LOGD(_TAG, "Event dispatched from event loop base=%s, event_id=%ld", base, event_id);
   esp_mqtt_event_handle_t event = event_data;
   esp_mqtt_client_handle_t client = event->client;
 
@@ -150,15 +150,24 @@ esp_err_t ncb_mqtt_connect_with_nvs(ncb_mqtt_message_receiver_callback message_c
   ESP_ERROR_CHECK(nvs_open(_NCB_NVS_NAMESPACE, NVS_READWRITE, &nvs_handle));
 
   const esp_mqtt_client_config_t mqtt_cfg = {
-      .uri = (const char *)_get_nvs_value(nvs_handle, "mqtt_uri"),
-      .client_cert_pem = (const char *)_get_nvs_value(nvs_handle, "mqtt_cert"),
-      .client_key_pem = (const char *)_get_nvs_value(nvs_handle, "mqtt_priv"),
-      .cert_pem = (const char *)_get_nvs_value(nvs_handle, "mqtt_root_ca"),
-  };
+      .broker = {.address =
+                     {
+                         .uri = (const char *)_get_nvs_value(nvs_handle, "mqtt_uri"),
+                     },
+                 .verification =
+                     {
+                         .certificate = (const char *)_get_nvs_value(nvs_handle, "mqtt_root_ca"),
+                     }},
+      .credentials = {.authentication = {
+                          .certificate = (const char *)_get_nvs_value(nvs_handle, "mqtt_cert"),
+                          .key = (const char *)_get_nvs_value(nvs_handle, "mqtt_priv"),
+                      }}};
 
-  if (mqtt_cfg.uri == NULL || strlen(mqtt_cfg.uri) == 0 || mqtt_cfg.client_cert_pem == NULL ||
-      strlen(mqtt_cfg.client_cert_pem) == 0 || mqtt_cfg.client_key_pem == NULL ||
-      strlen(mqtt_cfg.client_key_pem) == 0 || mqtt_cfg.cert_pem == NULL || strlen(mqtt_cfg.cert_pem) == 0) {
+  if (mqtt_cfg.broker.address.uri == NULL || strlen(mqtt_cfg.broker.address.uri) == 0 ||
+      mqtt_cfg.credentials.authentication.certificate == NULL ||
+      strlen(mqtt_cfg.credentials.authentication.certificate) == 0 || mqtt_cfg.credentials.authentication.key == NULL ||
+      strlen(mqtt_cfg.credentials.authentication.key) == 0 || mqtt_cfg.broker.verification.certificate == NULL ||
+      strlen(mqtt_cfg.broker.verification.certificate) == 0) {
     return ESP_ERR_INVALID_ARG;
   }
 

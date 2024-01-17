@@ -8,8 +8,7 @@
   "forwardPorts": [3232],
   "containerEnv": {
     "IDF_PATH": "/opt/esp/idf",
-    "IDF_TOOLS_PATH": "/opt/esp",
-    "ADF_PATH": "/opt/esp/esp-adf"
+    "IDF_TOOLS_PATH": "/opt/esp"
   },
   "customizations": {
     "vscode": {
