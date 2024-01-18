@@ -15,9 +15,11 @@ RUN apt-get update \
   libpixman-1-0 \
   linux-tools-virtual \
   clang-format \
+  curl \
   && rm -rf /var/lib/apt/lists/*
 
 RUN update-alternatives --install /usr/local/bin/usbip usbip `ls /usr/lib/linux-tools/*/usbip | tail -n1` 20
+RUN curl -sL https://deb.nodesource.com/setup_20.x | bash && apt-get update && apt install -y -q nodejs
 
 ENV LC_ALL=C.UTF-8
 ENV LANG=C.UTF-8
