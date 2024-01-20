@@ -12,6 +12,8 @@ This library offers a convenient way to configure ESP32's settings via BLE (Blue
   
 - **NVS Read/Write, WiFi, and MQTT Settings**: The library provides standard functionalities for reading and writing to NVS (Non-Volatile Storage), configuring WiFi and MQTT. However, it is also designed for easy extension of commands if needed. For guidance on how to extend commands, you can refer to the files located at [src/config.c](https://github.com/masuidrive/esp-network-config-ble/blob/main/components/network-config-ble/src/config.c) and [src/command_*.c](https://github.com/masuidrive/esp-network-config-ble/blob/main/components/network-config-ble/src).
 
+- **Flexible Configuration Options**: The library can be used solely for NVS settings or just for WiFi configuration, without the need to set up MQTT, providing versatile use cases.
+
 - **Line-Oriented Protocol Similar to SMTP**: The underlying protocol on Nordic UART is line-oriented and resembles SMTP, which makes it straightforward to test and experiment with.
 
 - **Manual Testing**: If you wish to manually test the functionalities, you can connect to the device using any [Nordic UART compatible app](https://www.google.com/search?q=nordic-uart+terminal+app). For example, entering `LIST_SSID\r\n` will retrieve a list of accessible SSIDs from the device.
