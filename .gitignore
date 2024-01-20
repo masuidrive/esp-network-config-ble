@@ -27,3 +27,4 @@ doxygen_warnings.txt
 #
 sdkconfig
 build
+_build

@@ -32,7 +32,8 @@
         "ms-vscode.cpptools-extension-pack",
         "masuidrive.vsc-esp-updater",
         "espressif.esp-idf-extension",
-        "mutantdino.resourcemonitor"
+        "mutantdino.resourcemonitor",
+        "bierner.markdown-preview-github-styles"
       ]
     }
   },
