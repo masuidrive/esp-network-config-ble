@@ -18,34 +18,6 @@ This library offers a convenient way to configure ESP32's settings via BLE (Blue
 
 - **Storage in NVS**: All configuration settings are stored in plaintext within the device's Non-Volatile Storage (NVS).
 
-## ESP-IDF Component API Documentation
-
-### Functions
-
-## Build configuration
-This section of the build configuration relates to the Nimble Nordic UART settings, allowing customization of the Bluetooth device's UART behavior.
-
-### BLE Device Name
-- **Key Name**: 
-- **Description**: This setting defines the Bluetooth device name used for advertisement.
-- **Default Value**: "Nordic UART"
-- **Details**: You can specify any string as the BLE device name. This name is visible when scanning for Bluetooth devices.
-
-### UART Max Receive Line Length
-- **Key Name**: NORDIC_UART_MAX_LINE_LENGTH
-- **Description**: Configures the maximum number of characters per line that the UART can receive.
-- **Default Value**: 256 bytes
-- **Range**: 1 - 65536 bytes
-- **Details**: This setting determines the limit on the line length for UART reception. Lines exceeding this length will be truncated.
-
-### UART Transmission Buffer Size
-- **Key Name**: NORDIC_UART_RX_BUFFER_SIZE
-- **Description**: Sets the size of the buffer used for UART transmission.
-- **Default Value**: 4096 bytes
-- **Range**: 1 - 65536 bytes
-- **Details**: This buffer size setting impacts the amount of data that can be held during UART transmission processes. Increasing this value can be beneficial for applications requiring large data transfers.
-
-
 # ESP-IDF Component API Documentation
 
 ## Functions
