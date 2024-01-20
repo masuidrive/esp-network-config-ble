@@ -2,12 +2,76 @@
 
 License: Apache 2.0 by Yuichiro MASUI <masui@masuidrive.jp>
 
-This repo included ESP-IDF component and Javascript library for browser.
+## Overview
+
+This library offers a convenient way to configure ESP32's settings via BLE (Bluetooth Low Energy). It simplifies the process of connecting your ESP32 device to a WiFi network.
+
+## Features
+
+- **Easy ESP32 Configuration via BLE**: The primary function of this library is to allow straightforward setup for ESP32 devices using Bluetooth Low Energy.
+  
+- **NVS Read/Write, WiFi, and MQTT Settings**: The library provides standard functionalities for reading and writing to NVS (Non-Volatile Storage), configuring WiFi and MQTT. However, it is also designed for easy extension of commands if needed. For guidance on how to extend commands, you can refer to the files located at [src/config.c](https://github.com/masuidrive/esp-network-config-ble/blob/main/components/network-config-ble/src/config.c) and [src/command_*.c](https://github.com/masuidrive/esp-network-config-ble/blob/main/components/network-config-ble/src).
+
+- **Line-Oriented Protocol Similar to SMTP**: The underlying protocol on Nordic UART is line-oriented and resembles SMTP, which makes it straightforward to test and experiment with.
+
+- **Manual Testing**: If you wish to manually test the functionalities, you can connect to the device using any [Nordic UART compatible app](https://www.google.com/search?q=nordic-uart+terminal+app). For example, entering `LIST_SSID\r\n` will retrieve a list of accessible SSIDs from the device.
+
+- **Storage in NVS**: All configuration settings are stored in plaintext within the device's Non-Volatile Storage (NVS).
+
+## ESP-IDF Component API Documentation
+
+### Functions
+
+## Build configuration
+This section of the build configuration relates to the Nimble Nordic UART settings, allowing customization of the Bluetooth device's UART behavior.
+
+### BLE Device Name
+- **Key Name**: 
+- **Description**: This setting defines the Bluetooth device name used for advertisement.
+- **Default Value**: "Nordic UART"
+- **Details**: You can specify any string as the BLE device name. This name is visible when scanning for Bluetooth devices.
+
+### UART Max Receive Line Length
+- **Key Name**: NORDIC_UART_MAX_LINE_LENGTH
+- **Description**: Configures the maximum number of characters per line that the UART can receive.
+- **Default Value**: 256 bytes
+- **Range**: 1 - 65536 bytes
+- **Details**: This setting determines the limit on the line length for UART reception. Lines exceeding this length will be truncated.
+
+### UART Transmission Buffer Size
+- **Key Name**: NORDIC_UART_RX_BUFFER_SIZE
+- **Description**: Sets the size of the buffer used for UART transmission.
+- **Default Value**: 4096 bytes
+- **Range**: 1 - 65536 bytes
+- **Details**: This buffer size setting impacts the amount of data that can be held during UART transmission processes. Increasing this value can be beneficial for applications requiring large data transfers.
 
 
 # ESP-IDF Component API Documentation
 
 ## Functions
+#### `esp_err_t ncb_config_start(const char *device_id, const char *ble_device_name, const char *firmware_version, const char *device_type, const struct ncb_command extend_commands[], size_t extend_commands_count, void (*callback)(enum ncb_callback_type callback_type, int param1))`
+Starts the network configuration process over BLE.
+
+- **Parameters**
+  - `device_id`: The unique identifier of the device.
+  - `ble_device_name`: The BLE device name for the configuration.
+  - `firmware_version`: Firmware version of the device.
+  - `device_type`: Type of the device.
+  - `extend_commands`: Array of extended commands.
+  - `extend_commands_count`: Number of extended commands.
+  - `callback`: Callback function for various network configuration stages.
+- **Returns**
+  - `esp_err_t`: Returns ESP_OK on success or an error code on failure.
+
+---
+
+#### `void ncb_config_stop()`
+Stops the BLE network configuration process.
+
+- **Description**
+  - This function halts the ongoing network configuration process and performs necessary cleanup.
+
+---
 
 ### `esp_err_t ncb_wifi_init()`
 Initializes the Wi-Fi driver. This function must be called before using any other Wi-Fi API functions.
@@ -93,7 +157,28 @@ Disconnects from the MQTT broker.
   - `esp_err_t`: ESP_OK on successful disconnection, otherwise an error code.
 ---
 
+### Structures
+
+#### `struct ncb_command`
+Represents a command for network configuration.
+
+- **Fields**
+  - `name`: The name of the command.
+  - `multiline`: A boolean indicating if the command can accept multiline input.
+  - `func`: Function pointer to the command's implementation, which takes arguments count, arguments array, data count, and data array.
+
+---
+
 ## Enumerations
+
+#### `enum ncb_callback_type`
+Defines callback types for network configuration processes.
+
+- `NCB_WAIT_CONNECT`: Indicates waiting for a BLE connection.
+- `NCB_PROCESSING`: Indicates general processing.
+- `NCB_OTA_PROCESSING`: Indicates OTA (Over-The-Air) update processing.
+
+---
 
 ### `enum ncb_wifi_status`
 Defines the different statuses of the Wi-Fi connection.
