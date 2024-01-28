@@ -1,4 +1,4 @@
-version: "1.0.0"
+version: "1.0.1"
 description: "Network / MQTT configure over BLE for ESP-IDF."
 
 url: "https://github.com/masuidrive/esp-network-config-ble"

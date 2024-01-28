@@ -30,7 +30,6 @@
 extern char *_ncb_ble_device_name;
 extern char *_ncb_firmware_version;
 extern char *_ncb_device_id;
-extern char *_ncb_device_type;
 extern void (*_ncb_config_callback)(enum ncb_callback_type, int param);
 
 // clang-format off

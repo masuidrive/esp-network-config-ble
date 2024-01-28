@@ -10,8 +10,6 @@ void _ncb_command_GET_STR(int argc, const char *args[], int datac, const char *d
 
   if (strcmp("device_id", name) == 0) {
     _NCB_SEND_RESULT(_ncb_device_id);
-  } else if (strcmp("_ncb_device_type", name) == 0) {
-    _NCB_SEND_RESULT(_ncb_device_type);
   } else if (strcmp("firmware_version", name) == 0) {
     _NCB_SEND_RESULT(_ncb_firmware_version);
   } else {

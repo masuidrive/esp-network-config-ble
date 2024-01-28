@@ -9,13 +9,13 @@ dependencies:
     source:
       path: /workspaces/esp-network-config-ble/components/network-config-ble
       type: local
-    version: 1.0.0
+    version: 1.0.1
   masuidrive/nimble-nordic-uart:
     component_hash: 80659307952a9ff6d8e539fe3e39aa10217247b366a3b158dca0e2cf488e8bc0
     source:
       service_url: https://api.components.espressif.com/
       type: service
     version: 1.0.3
-manifest_hash: 10f1d8e6db8abec174e3ff14d62295d18ca304973487f16adc8198c7b8bcc765
+manifest_hash: e1da7f807d2e09386f025110affbf87e641abf8bb87319ca0acc1c8d426908a7
 target: esp32
 version: 1.0.0

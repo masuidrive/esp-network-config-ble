@@ -27,7 +27,6 @@ esp_err_t _ncb_esp_err_code = ESP_OK;
 char *_ncb_ble_device_name = NULL;
 char *_ncb_firmware_version = NULL;
 char *_ncb_device_id = NULL;
-char *_ncb_device_type = NULL;
 void (*_ncb_config_callback)(enum ncb_callback_type, int param) = NULL;
 
 static void _run_command(const struct ncb_command *command, char *item) {
@@ -137,16 +136,15 @@ static char *alloc_strcpy(const char *str) {
   return dest;
 }
 
-esp_err_t ncb_config_start(const char *device_id, const char *ble_device_name, const char *firmware_version,
-                           const char *device_type, const struct ncb_command commands[], size_t commands_count,
-                           void (*callback)(enum ncb_callback_type, int param)) {
+esp_err_t ncb_config_start(const char *ble_device_name, const char *device_id, const char *firmware_version,
+                           const struct ncb_command commands[], size_t commands_count,
+                           void (*callback)(enum ncb_callback_type callback_type, int param)) {
   if (_ncb_uart_task)
     return ESP_FAIL;
 
-  _ncb_device_id = alloc_strcpy(device_id);
   _ncb_ble_device_name = alloc_strcpy(ble_device_name);
+  _ncb_device_id = alloc_strcpy(device_id);
   _ncb_firmware_version = alloc_strcpy(firmware_version);
-  _ncb_device_type = alloc_strcpy(device_type);
   _extend_commands = commands;
   _extend_commands_count = commands_count;
   _ncb_config_callback = callback;
@@ -172,8 +170,6 @@ void ncb_config_end() {
   _ncb_ble_device_name = NULL;
   free(_ncb_firmware_version);
   _ncb_firmware_version = NULL;
-  free(_ncb_device_type);
-  _ncb_device_type = NULL;
   free(_ncb_device_id);
   _ncb_device_id = NULL;
   nordic_uart_stop();
